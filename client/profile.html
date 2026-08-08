@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile | Andrea's</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../admin.css" />
+  <link rel="stylesheet" href="client.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand"><span class="logo-main">ANDREA'S</span><span class="logo-sub">My Account</span></div>
+    <nav class="sidebar-nav-items">
+      <p class="nav-section-label">Overview</p>
+      <a href="dashboard.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="0.5"/><rect x="9" y="1" width="6" height="6" rx="0.5"/><rect x="1" y="9" width="6" height="6" rx="0.5"/><rect x="9" y="9" width="6" height="6" rx="0.5"/></svg> Dashboard</a>
+      <p class="nav-section-label">My Services</p>
+      <a href="appointments.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="1" y1="6" x2="15" y2="6"/></svg> My Appointments</a>
+      <a href="nail-studio.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2c-2 0-4 1.5-4 5v5a2 2 0 004 0V7"/><path d="M8 2c2 0 4 1.5 4 5v5a2 2 0 01-4 0V7"/></svg> Nail Studio</a>
+      <a href="hair-studio.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2c0 4 2 6 3 8"/><path d="M8 2c0 4 1 6 2 8"/><path d="M11 2c0 4-1 6-3 8"/><path d="M4 14h8"/></svg> Hair Studio</a>
+      <p class="nav-section-label">Account</p>
+      <a href="profile.html" class="sidebar-link active"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg> My Profile</a>
+      <a href="preferences.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg> Preferences</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="user-avatar">M</div><div class="user-info"><p>Maria Santos</p><span>Client</span></div></div>
+      <a href="../login.html" class="logout-btn">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1 class="topbar-title">My Profile</h1>
+    </header>
+
+    <div class="admin-content">
+      <div style="display:grid;grid-template-columns:280px 1fr;gap:24px;align-items:start;">
+
+        <!-- Profile card -->
+        <div class="admin-card" style="margin-bottom:0;">
+          <div class="admin-card-body" style="text-align:center;">
+            <div class="profile-avatar-large" id="profileAvatarLarge">M</div>
+            <p style="font-family:'Cormorant Garamond',serif;font-size:22px;color:#fff;margin-bottom:4px;" id="profileFullName">Maria Santos</p>
+            <p style="font-size:11px;color:#9a7ab8;margin-bottom:20px;">Client since January 2025</p>
+            <div style="display:flex;justify-content:center;gap:24px;margin-bottom:20px;">
+              <div style="text-align:center;">
+                <p style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#f0a800;">14</p>
+                <p style="font-size:10px;color:#9a7ab8;letter-spacing:1px;">VISITS</p>
+              </div>
+              <div style="text-align:center;">
+                <p style="font-family:'Cormorant Garamond',serif;font-size:28px;color:#f0a800;">280</p>
+                <p style="font-size:10px;color:#9a7ab8;letter-spacing:1px;">POINTS</p>
+              </div>
+            </div>
+            <div style="background:rgba(240,168,0,0.07);border:1px solid rgba(240,168,0,0.2);padding:12px;margin-bottom:16px;">
+              <p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Loyalty Tier</p>
+              <p style="color:#f0a800;font-weight:700;font-size:13px;letter-spacing:1px;">GOLD MEMBER</p>
+            </div>
+            <p style="font-size:11px;color:#9a7ab8;line-height:1.7;">Earn 20 points per visit. Redeem 100 points for ₱100 off your next service.</p>
+          </div>
+        </div>
+
+        <!-- Edit form -->
+        <div>
+          <div class="admin-card" style="margin-bottom:24px;">
+            <div class="admin-card-header"><h2 class="admin-card-title">Personal Information</h2></div>
+            <div class="admin-card-body">
+              <form class="admin-form" id="profileForm">
+                <div class="form-row-2">
+                  <div class="form-group"><label>First Name</label><input type="text" id="pFirst" value="Maria" /></div>
+                  <div class="form-group"><label>Last Name</label><input type="text" id="pLast" value="Santos" /></div>
+                </div>
+                <div class="form-row-2">
+                  <div class="form-group"><label>Email</label><input type="email" id="pEmail" value="maria@email.com" /></div>
+                  <div class="form-group"><label>Phone</label><input type="tel" id="pPhone" value="+63 912 111 1111" /></div>
+                </div>
+                <div class="form-row-2">
+                  <div class="form-group"><label>Birthday</label><input type="date" id="pBirthday" value="1995-03-12" /></div>
+                  <div class="form-group">
+                    <label>Preferred Contact</label>
+                    <select id="pContact">
+                      <option>Email</option><option>SMS</option><option>Both</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group"><label>Address</label><input type="text" id="pAddress" placeholder="Your address (optional)" /></div>
+                <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                  <button type="button" class="btn-sm btn-sm-gold" onclick="saveProfile()">Save Changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+
+          <div class="admin-card">
+            <div class="admin-card-header"><h2 class="admin-card-title">Change Password</h2></div>
+            <div class="admin-card-body">
+              <form class="admin-form">
+                <div class="form-group"><label>Current Password</label><input type="password" placeholder="••••••••" /></div>
+                <div class="form-row-2">
+                  <div class="form-group"><label>New Password</label><input type="password" placeholder="••••••••" /></div>
+                  <div class="form-group"><label>Confirm New Password</label><input type="password" placeholder="••••••••" /></div>
+                </div>
+                <div style="display:flex;justify-content:flex-end;margin-top:8px;">
+                  <button type="button" class="btn-sm btn-sm-gold" onclick="showToast('Password updated!')">Update Password</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function saveProfile() {
+      const first = document.getElementById('pFirst').value;
+      const last  = document.getElementById('pLast').value;
+      document.getElementById('profileFullName').textContent = `${first} ${last}`;
+      document.getElementById('profileAvatarLarge').textContent = first.charAt(0).toUpperCase();
+      showToast('Profile updated!');
+    }
+
+    function showToast(msg) {
+      let t = document.getElementById('toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast';
+        t.style.cssText = 'position:fixed;bottom:32px;right:32px;background:#f0a800;color:#1a0a2e;font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:12px 24px;z-index:9999;opacity:0;transition:opacity 0.3s;';
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.opacity = '1';
+      setTimeout(() => t.style.opacity = '0', 2500);
+    }
+  </script>
+</body>
+</html>

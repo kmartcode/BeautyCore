@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Dashboard | Andrea's</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../admin.css" />
+  <link rel="stylesheet" href="client.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-body">
+
+  <!-- SIDEBAR -->
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand">
+      <span class="logo-main">ANDREA'S</span>
+      <span class="logo-sub">My Account</span>
+    </div>
+    <nav class="sidebar-nav-items">
+      <p class="nav-section-label">Overview</p>
+      <a href="dashboard.html" class="sidebar-link active"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="0.5"/><rect x="9" y="1" width="6" height="6" rx="0.5"/><rect x="1" y="9" width="6" height="6" rx="0.5"/><rect x="9" y="9" width="6" height="6" rx="0.5"/></svg> Dashboard</a>
+
+      <p class="nav-section-label">My Services</p>
+      <a href="appointments.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="1" y1="6" x2="15" y2="6"/></svg> My Appointments</a>
+      <a href="nail-studio.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2c-2 0-4 1.5-4 5v5a2 2 0 004 0V7"/><path d="M8 2c2 0 4 1.5 4 5v5a2 2 0 01-4 0V7"/></svg> Nail Studio</a>
+      <a href="hair-studio.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2c0 4 2 6 3 8"/><path d="M8 2c0 4 1 6 2 8"/><path d="M11 2c0 4-1 6-3 8"/><path d="M4 14h8"/></svg> Hair Studio</a>
+
+      <p class="nav-section-label">Account</p>
+      <a href="profile.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg> My Profile</a>
+      <a href="preferences.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg> Preferences</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">M</div>
+        <div class="user-info">
+          <p id="sidebarName">Maria Santos</p>
+          <span>Client</span>
+        </div>
+      </div>
+      <a href="../login.html" class="logout-btn">Sign Out</a>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1 class="topbar-title">Welcome back, <span id="welcomeName" style="color:#f0a800;">Maria</span></h1>
+      <div class="topbar-right">
+        <a href="appointments.html" class="btn-sm btn-sm-gold">+ Book Appointment</a>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <!-- Quick stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px;">
+        <div class="stat-card">
+          <p class="stat-label">Upcoming</p>
+          <p class="stat-value">2</p>
+          <p class="stat-change">appointments</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Completed</p>
+          <p class="stat-value">14</p>
+          <p class="stat-change">total visits</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Loyalty Points</p>
+          <p class="stat-value" style="color:#f0a800;">280</p>
+          <p class="stat-change up">+ 20 this month</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Total Spent</p>
+          <p class="stat-value">&#8369;4.2k</p>
+          <p class="stat-change">lifetime</p>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:24px;margin-bottom:24px;">
+
+        <!-- Upcoming appointments -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2 class="admin-card-title">Upcoming Appointments</h2>
+            <a href="appointments.html" class="btn-sm btn-sm-outline">View All</a>
+          </div>
+          <div class="admin-card-body" style="padding:0;">
+            <table class="admin-table">
+              <thead>
+                <tr><th>Service</th><th>Date</th><th>Time</th><th>Status</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="color:#fff;">Nail Studio</td>
+                  <td>Apr 10, 2026</td>
+                  <td>10:00 AM</td>
+                  <td><span class="badge badge-confirmed">Confirmed</span></td>
+                </tr>
+                <tr>
+                  <td style="color:#fff;">Japanese Head Spa</td>
+                  <td>Apr 15, 2026</td>
+                  <td>2:00 PM</td>
+                  <td><span class="badge badge-pending">Pending</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="admin-card">
+          <div class="admin-card-header">
+            <h2 class="admin-card-title">Quick Actions</h2>
+          </div>
+          <div class="admin-card-body" style="display:flex;flex-direction:column;gap:12px;">
+            <a href="appointments.html" class="client-action-btn">
+              <span class="client-action-icon">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="1" y1="6" x2="15" y2="6"/></svg>
+              </span>
+              <div><p>Book Appointment</p><span>Schedule your next visit</span></div>
+            </a>
+            <a href="nail-studio.html" class="client-action-btn">
+              <span class="client-action-icon">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 2c-1.5 0-3 1.2-3 4v5a2 2 0 004 0V6"/><path d="M10 2c1.5 0 3 1.2 3 4v5a2 2 0 01-4 0V6"/><line x1="6" y1="6" x2="10" y2="6"/></svg>
+              </span>
+              <div><p>Nail Studio</p><span>Browse &amp; save nail designs</span></div>
+            </a>
+            <a href="hair-studio.html" class="client-action-btn">
+              <span class="client-action-icon">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2c0 4 2 6 3 8"/><path d="M8 2c0 4 1 6 2 8"/><path d="M11 2c0 4-1 6-3 8"/><path d="M4 14h8"/></svg>
+              </span>
+              <div><p>Hair Studio</p><span>Explore hair styles</span></div>
+            </a>
+            <a href="profile.html" class="client-action-btn">
+              <span class="client-action-icon">
+                <svg width="18" height="18" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg>
+              </span>
+              <div><p>My Profile</p><span>Update your details</span></div>
+            </a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Saved designs -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2 class="admin-card-title">My Saved Designs</h2>
+          <a href="nail-studio.html" class="btn-sm btn-sm-outline">Browse More</a>
+        </div>
+        <div class="admin-card-body">
+          <div class="saved-designs-grid" id="savedDesignsGrid">
+            <!-- populated by JS -->
+          </div>
+          <p id="noSavedMsg" class="empty-msg hidden">No saved designs yet. <a href="nail-studio.html" style="color:#f0a800;">Browse the Nail Studio</a></p>
+        </div>
+      </div>
+
+      <!-- Recent activity -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h2 class="admin-card-title">Recent Visit History</h2>
+        </div>
+        <div class="admin-card-body" style="padding:0;">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Service</th><th>Date</th><th>Staff</th><th>Amount</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td style="color:#fff;">Nail Studio</td><td>Apr 7, 2026</td><td>Andrea</td><td style="color:#f0a800;">&#8369;350</td><td><span class="badge badge-completed">Completed</span></td></tr>
+              <tr><td style="color:#fff;">Hair Design</td><td>Mar 22, 2026</td><td>Maria</td><td style="color:#f0a800;">&#8369;350</td><td><span class="badge badge-completed">Completed</span></td></tr>
+              <tr><td style="color:#fff;">Massage Therapy</td><td>Mar 10, 2026</td><td>Carla</td><td style="color:#f0a800;">&#8369;600</td><td><span class="badge badge-completed">Completed</span></td></tr>
+              <tr><td style="color:#fff;">Japanese Head Spa</td><td>Feb 28, 2026</td><td>Jessa</td><td style="color:#f0a800;">&#8369;850</td><td><span class="badge badge-completed">Completed</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="client.js"></script>
+  <script>
+    // Load saved designs preview
+    const saved = JSON.parse(localStorage.getItem('savedDesigns') || '[]');
+    const grid  = document.getElementById('savedDesignsGrid');
+    const noMsg = document.getElementById('noSavedMsg');
+    if (saved.length === 0) {
+      noMsg.classList.remove('hidden');
+    } else {
+      saved.slice(0,4).forEach(d => {
+        const el = document.createElement('div');
+        el.className = 'saved-design-thumb';
+        el.style.background = d.gradient || '#2d1054';
+        el.innerHTML = `<p>${d.name}</p>`;
+        grid.appendChild(el);
+      });
+    }
+  </script>
+</body>
+</html>

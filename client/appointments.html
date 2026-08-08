@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Appointments | Andrea's</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../admin.css" />
+  <link rel="stylesheet" href="client.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand"><span class="logo-main">ANDREA'S</span><span class="logo-sub">My Account</span></div>
+    <nav class="sidebar-nav-items">
+      <p class="nav-section-label">Overview</p>
+      <a href="dashboard.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="0.5"/><rect x="9" y="1" width="6" height="6" rx="0.5"/><rect x="1" y="9" width="6" height="6" rx="0.5"/><rect x="9" y="9" width="6" height="6" rx="0.5"/></svg> Dashboard</a>
+      <p class="nav-section-label">My Services</p>
+      <a href="appointments.html" class="sidebar-link active"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="1" y1="6" x2="15" y2="6"/></svg> My Appointments</a>
+      <a href="nail-studio.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2c-2 0-4 1.5-4 5v5a2 2 0 004 0V7"/><path d="M8 2c2 0 4 1.5 4 5v5a2 2 0 01-4 0V7"/></svg> Nail Studio</a>
+      <a href="hair-studio.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2c0 4 2 6 3 8"/><path d="M8 2c0 4 1 6 2 8"/><path d="M11 2c0 4-1 6-3 8"/><path d="M4 14h8"/></svg> Hair Studio</a>
+      <p class="nav-section-label">Account</p>
+      <a href="profile.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg> My Profile</a>
+      <a href="preferences.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg> Preferences</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="user-avatar">M</div><div class="user-info"><p>Maria Santos</p><span>Client</span></div></div>
+      <a href="../login.html" class="logout-btn">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1 class="topbar-title">My Appointments</h1>
+      <div class="topbar-right">
+        <button class="btn-sm btn-sm-gold" onclick="openModal('bookModal')">+ Book New</button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" onclick="switchTab('upcoming',this)">Upcoming</button>
+        <button class="admin-tab-btn" onclick="switchTab('completed',this)">Completed</button>
+        <button class="admin-tab-btn" onclick="switchTab('cancelled',this)">Cancelled</button>
+        <button class="admin-tab-btn" onclick="switchTab('all',this)">All</button>
+      </div>
+
+      <div id="apptCards"></div>
+
+    </div>
+  </div>
+
+  <!-- BOOK MODAL -->
+  <div class="modal-overlay hidden" id="bookModal">
+    <div class="modal-box" style="max-width:540px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Book an Appointment</h3>
+        <button class="modal-close" onclick="closeModal('bookModal')">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <form class="admin-form" id="bookForm">
+          <div class="form-group">
+            <label>Service</label>
+            <select id="bService">
+              <option>Japanese Head Spa</option>
+              <option>Hair Design</option>
+              <option>Face &amp; Laser</option>
+              <option>Nail Studio</option>
+              <option>Massage Therapy</option>
+            </select>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group"><label>Date</label><input type="date" id="bDate" required /></div>
+            <div class="form-group">
+              <label>Time</label>
+              <select id="bTime">
+                <option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option>
+                <option>1:00 PM</option><option>2:00 PM</option><option>3:00 PM</option>
+                <option>4:00 PM</option><option>5:00 PM</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label>Special Requests</label><textarea id="bNotes" rows="3" placeholder="Any notes for your therapist..."></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-sm-outline" onclick="closeModal('bookModal')">Cancel</button>
+        <button class="btn-sm btn-sm-gold" onclick="bookAppointment()">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CANCEL CONFIRM MODAL -->
+  <div class="modal-overlay hidden" id="cancelModal">
+    <div class="modal-box" style="max-width:380px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Cancel Appointment</h3>
+        <button class="modal-close" onclick="closeModal('cancelModal')">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <p style="color:#e0c8f0;font-size:13px;line-height:1.7;">Are you sure you want to cancel this appointment? This action cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-sm-outline" onclick="closeModal('cancelModal')">Keep It</button>
+        <button class="btn-sm btn-sm-danger" onclick="confirmCancel()">Yes, Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let appointments = [
+      { id:1, service:'Nail Studio',       date:'2026-04-10', time:'10:00 AM', status:'Confirmed', notes:'',              staff:'Andrea' },
+      { id:2, service:'Japanese Head Spa', date:'2026-04-15', time:'2:00 PM',  status:'Pending',   notes:'Sensitive scalp', staff:'Jessa' },
+      { id:3, service:'Hair Design',       date:'2026-03-22', time:'11:00 AM', status:'Completed', notes:'',              staff:'Maria' },
+      { id:4, service:'Massage Therapy',   date:'2026-03-10', time:'3:00 PM',  status:'Completed', notes:'Deep tissue',   staff:'Carla' },
+      { id:5, service:'Japanese Head Spa', date:'2026-02-28', time:'1:00 PM',  status:'Completed', notes:'',              staff:'Jessa' },
+      { id:6, service:'Face & Laser',      date:'2026-02-10', time:'2:00 PM',  status:'Cancelled', notes:'',              staff:'Andrea' },
+    ];
+    let nextId = 7;
+    let cancelTarget = null;
+    let currentTab = 'upcoming';
+
+    const upcomingStatuses = ['Confirmed','Pending'];
+
+    function renderCards(data) {
+      const container = document.getElementById('apptCards');
+      if (!data.length) {
+        container.innerHTML = `<div style="text-align:center;padding:60px 0;color:#6a4a88;font-size:13px;">No appointments found.</div>`;
+        return;
+      }
+      container.innerHTML = data.map(a => `
+        <div class="appt-card">
+          <div class="appt-card-left">
+            <div class="appt-service-icon">${serviceIcon(a.service)}</div>
+            <div>
+              <p class="appt-service-name">${a.service}</p>
+              <p class="appt-meta"><span class="appt-meta-label">Date</span>${a.date}</p>
+              <p class="appt-meta"><span class="appt-meta-label">Time</span>${a.time}</p>
+              <p class="appt-meta"><span class="appt-meta-label">Staff</span>${a.staff}</p>
+              ${a.notes ? `<p class="appt-notes">"${a.notes}"</p>` : ''}
+            </div>
+          </div>
+          <div class="appt-card-right">
+            <span class="badge badge-${a.status.toLowerCase()}">${a.status}</span>
+            <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;justify-content:flex-end;">
+              ${upcomingStatuses.includes(a.status) ? `<button class="btn-sm btn-sm-danger" onclick="openCancel(${a.id})">Cancel</button>` : ''}
+              ${a.status === 'Completed' ? `<button class="btn-sm btn-sm-gold" onclick="rebook(${a.id})">Rebook</button>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function serviceIcon(s) {
+      const map = {
+        'Nail Studio':       'NS',
+        'Hair Design':       'HD',
+        'Japanese Head Spa': 'JH',
+        'Massage Therapy':   'MT',
+        'Face & Laser':      'FL'
+      };
+      return map[s] || s.charAt(0);
+    }
+
+    function switchTab(tab, btn) {
+      currentTab = tab;
+      document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      let filtered;
+      if (tab === 'upcoming')  filtered = appointments.filter(a => upcomingStatuses.includes(a.status));
+      else if (tab === 'all')  filtered = appointments;
+      else                     filtered = appointments.filter(a => a.status.toLowerCase() === tab);
+      renderCards(filtered);
+    }
+
+    function bookAppointment() {
+      const date = document.getElementById('bDate').value;
+      if (!date) { alert('Please select a date.'); return; }
+      appointments.unshift({
+        id: nextId++,
+        service: document.getElementById('bService').value,
+        date,
+        time:   document.getElementById('bTime').value,
+        status: 'Pending',
+        notes:  document.getElementById('bNotes').value,
+        staff:  'TBD',
+      });
+      closeModal('bookModal');
+      document.getElementById('bookForm').reset();
+      switchTab(currentTab, document.querySelector('.admin-tab-btn.active'));
+    }
+
+    function openCancel(id) {
+      cancelTarget = id;
+      openModal('cancelModal');
+    }
+
+    function confirmCancel() {
+      appointments = appointments.map(a => a.id === cancelTarget ? {...a, status:'Cancelled'} : a);
+      closeModal('cancelModal');
+      switchTab(currentTab, document.querySelector('.admin-tab-btn.active'));
+    }
+
+    function rebook(id) {
+      const a = appointments.find(x => x.id === id);
+      document.getElementById('bService').value = a.service;
+      openModal('bookModal');
+    }
+
+    function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+      o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
+    });
+
+    renderCards(appointments.filter(a => upcomingStatuses.includes(a.status)));
+  </script>
+</body>
+</html>

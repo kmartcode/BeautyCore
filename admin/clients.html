@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Clients (CRM) | Andrea's Admin</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../admin.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand"><span class="logo-main">ANDREA'S</span><span class="logo-sub">Admin Panel</span></div>
+    <nav class="sidebar-nav-items">
+      <p class="nav-section-label">Overview</p>
+      <a href="dashboard.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="0.5"/><rect x="9" y="1" width="6" height="6" rx="0.5"/><rect x="1" y="9" width="6" height="6" rx="0.5"/><rect x="9" y="9" width="6" height="6" rx="0.5"/></svg> Dashboard</a>
+      <p class="nav-section-label">Management</p>
+      <a href="appointments.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="1" y1="6" x2="15" y2="6"/></svg> Appointments</a>
+      <a href="clients.html" class="sidebar-link active"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg> Clients (CRM)</a>
+      <a href="inventory.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="14" height="10" rx="1"/><path d="M5 4V3a3 3 0 016 0v1"/></svg> Inventory</a>
+      <a href="finance.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="3" width="14" height="10" rx="1"/><line x1="1" y1="7" x2="15" y2="7"/><line x1="5" y1="11" x2="7" y2="11"/></svg> Financial</a>
+      <p class="nav-section-label">Settings</p>
+      <a href="services-admin.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg> Services</a>
+      <a href="staff.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="5" r="2.5"/><path d="M1 14c0-2.8 2.2-5 5-5s5 2.2 5 5"/><circle cx="12" cy="5" r="2"/><path d="M12 10c1.7 0 3 1.3 3 3"/></svg> Staff</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="user-avatar">A</div><div class="user-info"><p>Andrea</p><span>Administrator</span></div></div>
+      <a href="../login.html" class="logout-btn">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1 class="topbar-title">Client Management (CRM)</h1>
+      <div class="topbar-right">
+        <button class="btn-sm btn-sm-gold" onclick="openModal('addClientModal')">+ Add Client</button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <!-- Stats row -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;">
+        <div class="stat-card">
+          <p class="stat-label">Total Clients</p>
+          <p class="stat-value">247</p>
+          <p class="stat-change up">+ 12 this month</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Returning Clients</p>
+          <p class="stat-value">189</p>
+          <p class="stat-change">76% retention rate</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">New This Month</p>
+          <p class="stat-value">12</p>
+          <p class="stat-change up">+ 4 vs last month</p>
+        </div>
+      </div>
+
+      <div class="filter-bar">
+        <input type="text" id="clientSearch" placeholder="Search by name, email or phone..." oninput="filterClients()" />
+        <select id="clientServiceFilter" onchange="filterClients()">
+          <option value="">All Services</option>
+          <option>Japanese Head Spa</option>
+          <option>Hair Design</option>
+          <option>Face &amp; Laser</option>
+          <option>Nail Studio</option>
+          <option>Massage Therapy</option>
+        </select>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-body" style="padding:0;">
+          <table class="admin-table" id="clientTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+                <th>Preferred Service</th>
+                <th>Total Visits</th>
+                <th>Last Visit</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="clientBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD CLIENT MODAL -->
+  <div class="modal-overlay hidden" id="addClientModal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Client</h3>
+        <button class="modal-close" onclick="closeModal('addClientModal')">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <form class="admin-form" id="addClientForm">
+          <div class="form-row-2">
+            <div class="form-group"><label>First Name</label><input type="text" id="cFirstName" placeholder="Maria" required /></div>
+            <div class="form-group"><label>Last Name</label><input type="text" id="cLastName" placeholder="Santos" required /></div>
+          </div>
+          <div class="form-group"><label>Email</label><input type="email" id="cEmail" placeholder="client@email.com" /></div>
+          <div class="form-group"><label>Phone</label><input type="tel" id="cPhone" placeholder="+63 912 345 6789" /></div>
+          <div class="form-group">
+            <label>Preferred Service</label>
+            <select id="cService">
+              <option>Japanese Head Spa</option><option>Hair Design</option>
+              <option>Face &amp; Laser</option><option>Nail Studio</option><option>Massage Therapy</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Birthday</label><input type="date" id="cBirthday" /></div>
+          <div class="form-group"><label>Notes / Preferences</label><textarea id="cNotes" rows="3" placeholder="Allergies, preferences, special notes..."></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-sm-outline" onclick="closeModal('addClientModal')">Cancel</button>
+        <button class="btn-sm btn-sm-gold" onclick="addClient()">Save Client</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW CLIENT MODAL -->
+  <div class="modal-overlay hidden" id="viewClientModal">
+    <div class="modal-box" style="max-width:600px;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="viewClientName">Client Profile</h3>
+        <button class="modal-close" onclick="closeModal('viewClientModal')">&#10005;</button>
+      </div>
+      <div class="modal-body" id="viewClientBody"></div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-sm-outline" onclick="closeModal('viewClientModal')">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let clients = [
+      { id:1, first:'Maria',  last:'Santos', email:'maria@email.com',  phone:'+63 912 111 1111', service:'Nail Studio',       visits:14, lastVisit:'2026-04-07', birthday:'1995-03-12', notes:'Prefers gel nails' },
+      { id:2, first:'Jessa',  last:'Reyes',  email:'jessa@email.com',  phone:'+63 912 222 2222', service:'Japanese Head Spa', visits:8,  lastVisit:'2026-04-08', birthday:'1998-07-22', notes:'Sensitive scalp' },
+      { id:3, first:'Carla',  last:'Dizon',  email:'carla@email.com',  phone:'+63 912 333 3333', service:'Hair Design',       visits:11, lastVisit:'2026-04-08', birthday:'1993-11-05', notes:'' },
+      { id:4, first:'Ana',    last:'Lim',    email:'ana@email.com',    phone:'+63 912 444 4444', service:'Massage Therapy',   visits:6,  lastVisit:'2026-04-08', birthday:'1990-01-30', notes:'Deep tissue preferred' },
+      { id:5, first:'Rose',   last:'Tan',    email:'rose@email.com',   phone:'+63 912 555 5555', service:'Face & Laser',      visits:3,  lastVisit:'2026-03-20', birthday:'2000-06-15', notes:'' },
+      { id:6, first:'Luz',    last:'Garcia', email:'luz@email.com',    phone:'+63 912 666 6666', service:'Nail Studio',       visits:20, lastVisit:'2026-04-07', birthday:'1988-09-08', notes:'VIP client' },
+      { id:7, first:'Tina',   last:'Cruz',   email:'tina@email.com',   phone:'+63 912 777 7777', service:'Hair Design',       visits:5,  lastVisit:'2026-03-15', birthday:'1997-04-20', notes:'' },
+    ];
+    let nextClientId = 8;
+
+    function renderClients(data) {
+      const tbody = document.getElementById('clientBody');
+      if (!data.length) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:#6a4a88;padding:32px;">No clients found.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.map(c => `
+        <tr>
+          <td style="color:#6a4a88;">#${c.id}</td>
+          <td style="font-weight:600;color:#fff;">${c.first} ${c.last}</td>
+          <td>${c.email}</td>
+          <td>${c.phone}</td>
+          <td>${c.service}</td>
+          <td style="text-align:center;">${c.visits}</td>
+          <td>${c.lastVisit}</td>
+          <td style="display:flex;gap:6px;">
+            <button class="btn-sm btn-sm-outline" onclick="viewClient(${c.id})">View</button>
+            <button class="btn-sm btn-sm-danger" onclick="deleteClient(${c.id})">Delete</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterClients() {
+      const search  = document.getElementById('clientSearch').value.toLowerCase();
+      const service = document.getElementById('clientServiceFilter').value;
+      renderClients(clients.filter(c => {
+        const matchSearch  = `${c.first} ${c.last} ${c.email} ${c.phone}`.toLowerCase().includes(search);
+        const matchService = !service || c.service === service;
+        return matchSearch && matchService;
+      }));
+    }
+
+    function viewClient(id) {
+      const c = clients.find(x => x.id === id);
+      document.getElementById('viewClientName').textContent = `${c.first} ${c.last}`;
+      document.getElementById('viewClientBody').innerHTML = `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+          <div><p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Email</p><p style="color:#fff;font-size:12px;">${c.email}</p></div>
+          <div><p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Phone</p><p style="color:#fff;font-size:12px;">${c.phone}</p></div>
+          <div><p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Preferred Service</p><p style="color:#fff;font-size:12px;">${c.service}</p></div>
+          <div><p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Birthday</p><p style="color:#fff;font-size:12px;">${c.birthday || '—'}</p></div>
+          <div><p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Total Visits</p><p style="color:#f0a800;font-size:20px;font-family:'Cormorant Garamond',serif;">${c.visits}</p></div>
+          <div><p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Last Visit</p><p style="color:#fff;font-size:12px;">${c.lastVisit}</p></div>
+        </div>
+        ${c.notes ? `<div style="background:rgba(176,64,216,0.07);border:1px solid rgba(176,64,216,0.2);padding:14px;"><p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Notes</p><p style="color:#e0c8f0;font-size:12px;line-height:1.7;">${c.notes}</p></div>` : ''}
+      `;
+      openModal('viewClientModal');
+    }
+
+    function addClient() {
+      const first = document.getElementById('cFirstName').value.trim();
+      const last  = document.getElementById('cLastName').value.trim();
+      if (!first || !last) { alert('Name is required.'); return; }
+      clients.push({
+        id: nextClientId++, first, last,
+        email:     document.getElementById('cEmail').value,
+        phone:     document.getElementById('cPhone').value,
+        service:   document.getElementById('cService').value,
+        visits:    0,
+        lastVisit: '—',
+        birthday:  document.getElementById('cBirthday').value,
+        notes:     document.getElementById('cNotes').value,
+      });
+      closeModal('addClientModal');
+      document.getElementById('addClientForm').reset();
+      filterClients();
+    }
+
+    function deleteClient(id) {
+      if (!confirm('Delete this client?')) return;
+      clients = clients.filter(c => c.id !== id);
+      filterClients();
+    }
+
+    function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+      o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
+    });
+
+    renderClients(clients);
+  </script>
+</body>
+</html>

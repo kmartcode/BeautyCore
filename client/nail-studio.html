@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Nail Studio | Andrea's</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../admin.css" />
+  <link rel="stylesheet" href="client.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand"><span class="logo-main">ANDREA'S</span><span class="logo-sub">My Account</span></div>
+    <nav class="sidebar-nav-items">
+      <p class="nav-section-label">Overview</p>
+      <a href="dashboard.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="0.5"/><rect x="9" y="1" width="6" height="6" rx="0.5"/><rect x="1" y="9" width="6" height="6" rx="0.5"/><rect x="9" y="9" width="6" height="6" rx="0.5"/></svg> Dashboard</a>
+      <p class="nav-section-label">My Services</p>
+      <a href="appointments.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="1" y1="6" x2="15" y2="6"/></svg> My Appointments</a>
+      <a href="nail-studio.html" class="sidebar-link active"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2c-2 0-4 1.5-4 5v5a2 2 0 004 0V7"/><path d="M8 2c2 0 4 1.5 4 5v5a2 2 0 01-4 0V7"/></svg> Nail Studio</a>
+      <a href="hair-studio.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2c0 4 2 6 3 8"/><path d="M8 2c0 4 1 6 2 8"/><path d="M11 2c0 4-1 6-3 8"/><path d="M4 14h8"/></svg> Hair Studio</a>
+      <p class="nav-section-label">Account</p>
+      <a href="profile.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg> My Profile</a>
+      <a href="preferences.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg> Preferences</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="user-avatar">M</div><div class="user-info"><p>Maria Santos</p><span>Client</span></div></div>
+      <a href="../login.html" class="logout-btn">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1 class="topbar-title">Nail Studio</h1>
+      <div class="topbar-right">
+        <button class="btn-sm btn-sm-outline" onclick="showTab('saved')">Saved Designs</button>
+        <button class="btn-sm btn-sm-gold" onclick="showTab('custom')">+ Custom Design</button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <!-- Tabs -->
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" id="tab-browse" onclick="showTab('browse')">Browse Designs</button>
+        <button class="admin-tab-btn" id="tab-custom" onclick="showTab('custom')">Custom Builder</button>
+        <button class="admin-tab-btn" id="tab-saved" onclick="showTab('saved')">Saved Designs</button>
+      </div>
+
+      <!-- BROWSE -->
+      <div id="panel-browse" class="tab-panel active">
+        <div class="filter-bar">
+          <input type="text" id="designSearch" placeholder="Search designs..." oninput="filterDesigns()" />
+          <select id="designCat" onchange="filterDesigns()">
+            <option value="">All Styles</option>
+            <option>Minimalist</option>
+            <option>Floral</option>
+            <option>Glitter</option>
+            <option>French</option>
+            <option>Ombre</option>
+            <option>Abstract</option>
+            <option>Seasonal</option>
+          </select>
+          <select id="designColor" onchange="filterDesigns()">
+            <option value="">All Colors</option>
+            <option>Nude</option>
+            <option>Pink</option>
+            <option>Red</option>
+            <option>Purple</option>
+            <option>White</option>
+            <option>Black</option>
+            <option>Gold</option>
+          </select>
+        </div>
+        <div class="designs-grid" id="designsGrid"></div>
+      </div>
+
+      <!-- CUSTOM BUILDER -->
+      <div id="panel-custom" class="tab-panel">
+        <div class="custom-builder">
+          <div class="builder-left">
+            <div class="admin-card" style="margin-bottom:0;">
+              <div class="admin-card-header"><h2 class="admin-card-title">Design Builder</h2></div>
+              <div class="admin-card-body">
+
+                <div class="form-group" style="margin-bottom:20px;">
+                  <label style="font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:#c8a8e0;display:block;margin-bottom:8px;">Design Name</label>
+                  <input type="text" id="customName" placeholder="My custom design..." style="width:100%;background:rgba(176,64,216,0.08);border:1px solid rgba(176,64,216,0.25);color:#fff;font-family:'Montserrat',sans-serif;font-size:12px;padding:11px 14px;outline:none;" />
+                </div>
+
+                <p class="builder-section-label">Base Color</p>
+                <div class="color-swatches" id="baseColors"></div>
+
+                <p class="builder-section-label">Accent Color</p>
+                <div class="color-swatches" id="accentColors"></div>
+
+                <p class="builder-section-label">Nail Shape</p>
+                <div class="shape-options" id="shapeOptions"></div>
+
+                <p class="builder-section-label">Finish</p>
+                <div class="finish-options" id="finishOptions"></div>
+
+                <p class="builder-section-label">Art Style</p>
+                <div class="art-options" id="artOptions"></div>
+
+                <div style="display:flex;gap:12px;margin-top:24px;">
+                  <button class="btn-sm btn-sm-outline" style="flex:1;" onclick="resetBuilder()">Reset</button>
+                  <button class="btn-sm btn-sm-gold" style="flex:1;" onclick="saveCustomDesign()">Save Design</button>
+                </div>
+                <button class="btn-sm btn-sm-gold" style="width:100%;margin-top:10px;" onclick="bookWithDesign()">Book with This Design</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview -->
+          <div class="builder-right">
+            <div class="admin-card" style="margin-bottom:0;">
+              <div class="admin-card-header"><h2 class="admin-card-title">Live Preview</h2></div>
+              <div class="admin-card-body" style="display:flex;flex-direction:column;align-items:center;gap:24px;">
+                <div class="nail-preview-hand" id="nailPreviewHand">
+                  <div class="nail-finger" id="nail1"></div>
+                  <div class="nail-finger" id="nail2"></div>
+                  <div class="nail-finger tall" id="nail3"></div>
+                  <div class="nail-finger" id="nail4"></div>
+                  <div class="nail-finger short" id="nail5"></div>
+                </div>
+                <div class="preview-info" id="previewInfo">
+                  <p id="previewName" style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#fff;margin-bottom:6px;">My Design</p>
+                  <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;" id="previewTags"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAVED -->
+      <div id="panel-saved" class="tab-panel">
+        <div class="designs-grid" id="savedGrid"></div>
+        <p id="savedEmpty" class="empty-msg">No saved designs yet. <a href="#" onclick="showTab('browse')" style="color:#f0a800;">Browse designs</a> or <a href="#" onclick="showTab('custom')" style="color:#f0a800;">build your own</a>.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOOK WITH DESIGN MODAL -->
+  <div class="modal-overlay hidden" id="bookDesignModal">
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Book Nail Studio</h3>
+        <button class="modal-close" onclick="closeModal('bookDesignModal')">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background:rgba(240,168,0,0.07);border:1px solid rgba(240,168,0,0.2);padding:14px;margin-bottom:20px;">
+          <p style="font-size:10px;color:#9a7ab8;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:4px;">Selected Design</p>
+          <p id="bookDesignName" style="color:#f0a800;font-size:14px;font-weight:600;"></p>
+        </div>
+        <form class="admin-form">
+          <div class="form-row-2">
+            <div class="form-group"><label>Date</label><input type="date" id="bdDate" /></div>
+            <div class="form-group">
+              <label>Time</label>
+              <select id="bdTime">
+                <option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option>
+                <option>1:00 PM</option><option>2:00 PM</option><option>3:00 PM</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group"><label>Notes</label><textarea rows="2" placeholder="Any additional requests..."></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-sm-outline" onclick="closeModal('bookDesignModal')">Cancel</button>
+        <button class="btn-sm btn-sm-gold" onclick="confirmBookDesign()">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---- DATA ----
+    const colors = [
+      { name:'Nude',   hex:'#e8c9a0' }, { name:'Blush',  hex:'#f4a7b9' },
+      { name:'Rose',   hex:'#e8607a' }, { name:'Red',    hex:'#c0392b' },
+      { name:'Berry',  hex:'#8e44ad' }, { name:'Purple', hex:'#7b2fa0' },
+      { name:'Navy',   hex:'#2c3e7a' }, { name:'Black',  hex:'#1a1a1a' },
+      { name:'White',  hex:'#f5f5f5' }, { name:'Gold',   hex:'#f0a800' },
+      { name:'Coral',  hex:'#e8735a' }, { name:'Mint',   hex:'#7ecba1' },
+    ];
+
+    const shapes  = ['Round','Square','Oval','Almond','Stiletto','Coffin'];
+    const finishes = ['Glossy','Matte','Shimmer','Glitter','Chrome','Velvet'];
+    const artStyles = ['None','French Tip','Floral','Abstract','Geometric','Marble','Ombre','Glitter Tips'];
+
+    const presetDesigns = [
+      { id:1,  name:'Nude Minimalist',    style:'Minimalist', color:'Nude',   base:'#e8c9a0', accent:'#d4b080', shape:'Oval',    finish:'Matte',    art:'None',        gradient:'linear-gradient(135deg,#e8c9a0,#d4b080)' },
+      { id:2,  name:'Rose Gold Glam',     style:'Glitter',    color:'Gold',   base:'#f0a800', accent:'#e8607a', shape:'Almond',  finish:'Shimmer',  art:'Glitter Tips',gradient:'linear-gradient(135deg,#f0a800,#e8607a)' },
+      { id:3,  name:'French Classic',     style:'French',     color:'White',  base:'#f5f5f5', accent:'#e8c9a0', shape:'Square',  finish:'Glossy',   art:'French Tip',  gradient:'linear-gradient(135deg,#f5f5f5,#e8c9a0)' },
+      { id:4,  name:'Berry Ombre',        style:'Ombre',      color:'Purple', base:'#8e44ad', accent:'#e8607a', shape:'Coffin',  finish:'Glossy',   art:'Ombre',       gradient:'linear-gradient(135deg,#8e44ad,#e8607a)' },
+      { id:5,  name:'Midnight Black',     style:'Minimalist', color:'Black',  base:'#1a1a1a', accent:'#f0a800', shape:'Stiletto',finish:'Chrome',   art:'None',        gradient:'linear-gradient(135deg,#1a1a1a,#f0a800)' },
+      { id:6,  name:'Floral Blush',       style:'Floral',     color:'Pink',   base:'#f4a7b9', accent:'#f5f5f5', shape:'Round',   finish:'Glossy',   art:'Floral',      gradient:'linear-gradient(135deg,#f4a7b9,#f5f5f5)' },
+      { id:7,  name:'Purple Marble',      style:'Abstract',   color:'Purple', base:'#7b2fa0', accent:'#f5f5f5', shape:'Oval',    finish:'Matte',    art:'Marble',      gradient:'linear-gradient(135deg,#7b2fa0,#c8a8e0)' },
+      { id:8,  name:'Coral Summer',       style:'Seasonal',   color:'Red',    base:'#e8735a', accent:'#f0a800', shape:'Round',   finish:'Glossy',   art:'None',        gradient:'linear-gradient(135deg,#e8735a,#f0a800)' },
+      { id:9,  name:'Navy Geometric',     style:'Abstract',   color:'Black',  base:'#2c3e7a', accent:'#f5f5f5', shape:'Square',  finish:'Matte',    art:'Geometric',   gradient:'linear-gradient(135deg,#2c3e7a,#5b7fc4)' },
+      { id:10, name:'Mint Fresh',         style:'Minimalist', color:'White',  base:'#7ecba1', accent:'#f5f5f5', shape:'Round',   finish:'Glossy',   art:'None',        gradient:'linear-gradient(135deg,#7ecba1,#b8e8d0)' },
+      { id:11, name:'Red Velvet',         style:'Minimalist', color:'Red',    base:'#c0392b', accent:'#8e44ad', shape:'Almond',  finish:'Velvet',   art:'None',        gradient:'linear-gradient(135deg,#c0392b,#8e44ad)' },
+      { id:12, name:'Gold Glitter',       style:'Glitter',    color:'Gold',   base:'#f0a800', accent:'#f5f5f5', shape:'Coffin',  finish:'Glitter',  art:'Glitter Tips',gradient:'linear-gradient(135deg,#f0a800,#fff3c0)' },
+    ];
+
+    // Builder state
+    let builder = { base: colors[0], accent: colors[9], shape: 'Oval', finish: 'Glossy', art: 'None', name: '' };
+    let savedDesigns = JSON.parse(localStorage.getItem('savedDesigns') || '[]');
+    let currentDesignName = '';
+
+    // ---- TABS ----
+    function showTab(tab) {
+      ['browse','custom','saved'].forEach(t => {
+        document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+        document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+      });
+      if (tab === 'saved') renderSaved();
+    }
+
+    // ---- BROWSE ----
+    function renderDesigns(data) {
+      document.getElementById('designsGrid').innerHTML = data.map(d => `
+        <div class="design-card">
+          <div class="design-preview" style="background:${d.gradient};">
+            <div class="design-nails">
+              ${[0,1,2,3,4].map(i => `<div class="mini-nail" style="background:${i===2?d.accent:d.base};border-radius:${shapeRadius(d.shape)};"></div>`).join('')}
+            </div>
+          </div>
+          <div class="design-info">
+            <p class="design-name">${d.name}</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+              <span class="design-tag">${d.style}</span>
+              <span class="design-tag">${d.finish}</span>
+              <span class="design-tag">${d.shape}</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-sm btn-sm-outline" style="flex:1;" onclick="saveDesign(${d.id})">Save</button>
+              <button class="btn-sm btn-sm-gold" style="flex:1;" onclick="bookDesign('${d.name}')">Book</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function shapeRadius(shape) {
+      const map = { Round:'50% 50% 40% 40%', Square:'4px', Oval:'50% 50% 35% 35%', Almond:'50% 50% 30% 30%', Stiletto:'50% 50% 10% 10%', Coffin:'20% 20% 5% 5%' };
+      return map[shape] || '50% 50% 40% 40%';
+    }
+
+    function filterDesigns() {
+      const search = document.getElementById('designSearch').value.toLowerCase();
+      const cat    = document.getElementById('designCat').value;
+      const color  = document.getElementById('designColor').value;
+      renderDesigns(presetDesigns.filter(d => {
+        const matchSearch = d.name.toLowerCase().includes(search);
+        const matchCat    = !cat   || d.style === cat;
+        const matchColor  = !color || d.color === color;
+        return matchSearch && matchCat && matchColor;
+      }));
+    }
+
+    function saveDesign(id) {
+      const d = presetDesigns.find(x => x.id === id);
+      if (!savedDesigns.find(s => s.id === id)) {
+        savedDesigns.push(d);
+        localStorage.setItem('savedDesigns', JSON.stringify(savedDesigns));
+        showToast('Design saved!');
+      } else {
+        showToast('Already saved.');
+      }
+    }
+
+    function bookDesign(name) {
+      currentDesignName = name;
+      document.getElementById('bookDesignName').textContent = name;
+      openModal('bookDesignModal');
+    }
+
+    // ---- BUILDER ----
+    function buildColorSwatches(containerId, key) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = colors.map(c => `
+        <div class="color-swatch ${builder[key].name === c.name ? 'selected' : ''}"
+             style="background:${c.hex};" title="${c.name}"
+             onclick="selectColor('${key}','${c.name}','${c.hex}',this)"></div>
+      `).join('');
+    }
+
+    function selectColor(key, name, hex, el) {
+      builder[key] = { name, hex };
+      el.closest('.color-swatches').querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+      updatePreview();
+    }
+
+    function buildOptions(containerId, items, key, cssClass) {
+      const el = document.getElementById(containerId);
+      el.innerHTML = items.map(item => `
+        <button class="${cssClass} ${builder[key] === item ? 'selected' : ''}"
+                onclick="selectOption('${key}','${item}',this,'${cssClass}')">${item}</button>
+      `).join('');
+    }
+
+    function selectOption(key, value, el, cssClass) {
+      builder[key] = value;
+      el.closest('.' + containerId(cssClass)).querySelectorAll('.' + cssClass).forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+      updatePreview();
+    }
+
+    function containerId(cssClass) {
+      const map = { 'shape-btn':'shape-options', 'finish-btn':'finish-options', 'art-btn':'art-options' };
+      return map[cssClass] || '';
+    }
+
+    function updatePreview() {
+      const nails = document.querySelectorAll('.nail-finger');
+      nails.forEach((n, i) => {
+        n.style.background = i === 2 ? builder.accent.hex : builder.base.hex;
+        n.style.borderRadius = shapeRadius(builder.shape);
+      });
+      document.getElementById('previewName').textContent = document.getElementById('customName').value || 'My Design';
+      const tags = document.getElementById('previewTags');
+      tags.innerHTML = [builder.shape, builder.finish, builder.art !== 'None' ? builder.art : null]
+        .filter(Boolean).map(t => `<span class="design-tag">${t}</span>`).join('');
+    }
+
+    function resetBuilder() {
+      builder = { base: colors[0], accent: colors[9], shape: 'Oval', finish: 'Glossy', art: 'None', name: '' };
+      document.getElementById('customName').value = '';
+      initBuilder();
+    }
+
+    function saveCustomDesign() {
+      const name = document.getElementById('customName').value.trim() || 'Custom Design';
+      const design = {
+        id: Date.now(), name,
+        style: 'Custom', color: builder.base.name,
+        base: builder.base.hex, accent: builder.accent.hex,
+        shape: builder.shape, finish: builder.finish, art: builder.art,
+        gradient: `linear-gradient(135deg,${builder.base.hex},${builder.accent.hex})`,
+      };
+      savedDesigns.push(design);
+      localStorage.setItem('savedDesigns', JSON.stringify(savedDesigns));
+      showToast('Design saved!');
+    }
+
+    function bookWithDesign() {
+      const name = document.getElementById('customName').value.trim() || 'Custom Design';
+      bookDesign(name);
+    }
+
+    function confirmBookDesign() {
+      closeModal('bookDesignModal');
+      showToast('Booking submitted for ' + currentDesignName);
+    }
+
+    // ---- SAVED ----
+    function renderSaved() {
+      const grid  = document.getElementById('savedGrid');
+      const empty = document.getElementById('savedEmpty');
+      if (!savedDesigns.length) {
+        grid.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      grid.innerHTML = savedDesigns.map(d => `
+        <div class="design-card">
+          <div class="design-preview" style="background:${d.gradient};">
+            <div class="design-nails">
+              ${[0,1,2,3,4].map(i => `<div class="mini-nail" style="background:${i===2?d.accent:d.base};border-radius:${shapeRadius(d.shape)};"></div>`).join('')}
+            </div>
+          </div>
+          <div class="design-info">
+            <p class="design-name">${d.name}</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+              <span class="design-tag">${d.style}</span>
+              <span class="design-tag">${d.finish}</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-sm btn-sm-danger" style="flex:1;" onclick="removeSaved(${d.id})">Remove</button>
+              <button class="btn-sm btn-sm-gold" style="flex:1;" onclick="bookDesign('${d.name}')">Book</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeSaved(id) {
+      savedDesigns = savedDesigns.filter(d => d.id !== id);
+      localStorage.setItem('savedDesigns', JSON.stringify(savedDesigns));
+      renderSaved();
+    }
+
+    // ---- TOAST ----
+    function showToast(msg) {
+      let t = document.getElementById('toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast';
+        t.style.cssText = 'position:fixed;bottom:32px;right:32px;background:#f0a800;color:#1a0a2e;font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:12px 24px;z-index:9999;opacity:0;transition:opacity 0.3s;';
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.opacity = '1';
+      setTimeout(() => t.style.opacity = '0', 2500);
+    }
+
+    function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+      o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
+    });
+
+    function initBuilder() {
+      buildColorSwatches('baseColors', 'base');
+      buildColorSwatches('accentColors', 'accent');
+      buildOptions('shapeOptions', shapes, 'shape', 'shape-btn');
+      buildOptions('finishOptions', finishes, 'finish', 'finish-btn');
+      buildOptions('artOptions', artStyles, 'art', 'art-btn');
+      updatePreview();
+    }
+
+    // live name update
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('customName').addEventListener('input', updatePreview);
+    });
+
+    renderDesigns(presetDesigns);
+    initBuilder();
+  </script>
+</body>
+</html>

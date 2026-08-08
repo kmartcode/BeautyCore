@@ -1,0 +1,85 @@
+/* ===========================
+   ICON SYSTEM — SVG-based, no emoji
+=========================== */
+
+/* Sidebar nav icons — simple geometric shapes via CSS */
+.nav-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.sidebar-link:hover .nav-icon,
+.sidebar-link.active .nav-icon {
+  opacity: 1;
+}
+
+/* Stat card accent bar replaces emoji icon */
+.stat-icon {
+  display: none; /* hide emoji stat icons */
+}
+
+/* Stat card top accent line color variants */
+.stat-card.accent-calendar::before { background: linear-gradient(90deg, #7b2fa0, #b040d8); }
+.stat-card.accent-clients::before  { background: linear-gradient(90deg, #b040d8, #f0a800); }
+.stat-card.accent-revenue::before  { background: linear-gradient(90deg, #f0a800, #f5c040); }
+.stat-card.accent-stock::before    { background: linear-gradient(90deg, #eb5757, #f0a800); }
+.stat-card.accent-star::before     { background: linear-gradient(90deg, #f0a800, #f5c040); }
+.stat-card.accent-check::before    { background: linear-gradient(90deg, #6fcf97, #7b2fa0); }
+
+/* Contact icons — replace bullet with clean lines */
+.contact-icon {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: #f0a800;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+  margin-top: 3px;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Appt meta — remove emoji prefix, use label style */
+.appt-meta-label {
+  display: inline-block;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #6a4a88;
+  margin-right: 6px;
+  min-width: 36px;
+}
+
+/* Action icon in client dashboard */
+.client-action-icon {
+  font-size: 14px;
+  font-weight: 700;
+  color: #f0a800;
+  font-family: 'Montserrat', sans-serif;
+  letter-spacing: 0;
+}
+
+/* Nav hamburger — CSS only, no emoji */
+.nav-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: 4px;
+}
+
+.nav-toggle span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: #fff;
+  transition: all 0.2s;
+}

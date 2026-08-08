@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hair Studio | Andrea's</title>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../admin.css" />
+  <link rel="stylesheet" href="client.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;600&family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet" />
+</head>
+<body class="admin-body">
+
+  <aside class="admin-sidebar">
+    <div class="sidebar-brand"><span class="logo-main">ANDREA'S</span><span class="logo-sub">My Account</span></div>
+    <nav class="sidebar-nav-items">
+      <p class="nav-section-label">Overview</p>
+      <a href="dashboard.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="6" height="6" rx="0.5"/><rect x="9" y="1" width="6" height="6" rx="0.5"/><rect x="1" y="9" width="6" height="6" rx="0.5"/><rect x="9" y="9" width="6" height="6" rx="0.5"/></svg> Dashboard</a>
+      <p class="nav-section-label">My Services</p>
+      <a href="appointments.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="14" height="13" rx="1"/><line x1="5" y1="1" x2="5" y2="4"/><line x1="11" y1="1" x2="11" y2="4"/><line x1="1" y1="6" x2="15" y2="6"/></svg> My Appointments</a>
+      <a href="nail-studio.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2c-2 0-4 1.5-4 5v5a2 2 0 004 0V7"/><path d="M8 2c2 0 4 1.5 4 5v5a2 2 0 01-4 0V7"/></svg> Nail Studio</a>
+      <a href="hair-studio.html" class="sidebar-link active"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 2c0 4 2 6 3 8"/><path d="M8 2c0 4 1 6 2 8"/><path d="M11 2c0 4-1 6-3 8"/><path d="M4 14h8"/></svg> Hair Studio</a>
+      <p class="nav-section-label">Account</p>
+      <a href="profile.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="5" r="3"/><path d="M2 14c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg> My Profile</a>
+      <a href="preferences.html" class="sidebar-link"><svg class="nav-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="2.5"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2"/></svg> Preferences</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user"><div class="user-avatar">M</div><div class="user-info"><p>Maria Santos</p><span>Client</span></div></div>
+      <a href="../login.html" class="logout-btn">Sign Out</a>
+    </div>
+  </aside>
+
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <h1 class="topbar-title">Hair Studio</h1>
+      <div class="topbar-right">
+        <button class="btn-sm btn-sm-gold" onclick="openModal('bookHairModal')">Book Hair Service</button>
+      </div>
+    </header>
+
+    <div class="admin-content">
+
+      <div class="admin-tabs">
+        <button class="admin-tab-btn active" id="tab-styles" onclick="showHairTab('styles')">Browse Styles</button>
+        <button class="admin-tab-btn" id="tab-color" onclick="showHairTab('color')">Color Picker</button>
+        <button class="admin-tab-btn" id="tab-hsaved" onclick="showHairTab('hsaved')">Saved Looks</button>
+      </div>
+
+      <!-- BROWSE STYLES -->
+      <div id="panel-styles" class="tab-panel active">
+        <div class="filter-bar">
+          <input type="text" id="hairSearch" placeholder="Search styles..." oninput="filterHair()" />
+          <select id="hairType" onchange="filterHair()">
+            <option value="">All Types</option>
+            <option>Cut</option><option>Color</option><option>Treatment</option><option>Extension</option><option>Style</option>
+          </select>
+          <select id="hairLength" onchange="filterHair()">
+            <option value="">All Lengths</option>
+            <option>Short</option><option>Medium</option><option>Long</option>
+          </select>
+        </div>
+        <div class="designs-grid" id="hairGrid"></div>
+      </div>
+
+      <!-- COLOR PICKER -->
+      <div id="panel-color" class="tab-panel">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+          <div class="admin-card" style="margin-bottom:0;">
+            <div class="admin-card-header"><h2 class="admin-card-title">Hair Color Selector</h2></div>
+            <div class="admin-card-body">
+              <p class="builder-section-label">Natural Base</p>
+              <div class="color-swatches" id="hairBaseColors"></div>
+              <p class="builder-section-label">Target Color</p>
+              <div class="color-swatches" id="hairTargetColors"></div>
+              <p class="builder-section-label">Technique</p>
+              <div class="art-options" id="hairTechniques"></div>
+              <div style="margin-top:20px;display:flex;gap:12px;">
+                <button class="btn-sm btn-sm-outline" style="flex:1;" onclick="saveHairColor()">Save Look</button>
+                <button class="btn-sm btn-sm-gold" style="flex:1;" onclick="openModal('bookHairModal')">Book Now</button>
+              </div>
+            </div>
+          </div>
+          <div class="admin-card" style="margin-bottom:0;">
+            <div class="admin-card-header"><h2 class="admin-card-title">Color Preview</h2></div>
+            <div class="admin-card-body" style="display:flex;flex-direction:column;align-items:center;gap:20px;">
+              <div class="hair-preview" id="hairPreview">
+                <div class="hair-preview-head"></div>
+                <div class="hair-preview-hair" id="hairPreviewColor"></div>
+              </div>
+              <div style="text-align:center;">
+                <p id="hairColorLabel" style="font-family:'Cormorant Garamond',serif;font-size:20px;color:#fff;margin-bottom:8px;">Natural Brown → Ash Blonde</p>
+                <p id="hairTechLabel" style="font-size:11px;color:#9a7ab8;letter-spacing:1px;">Balayage</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SAVED LOOKS -->
+      <div id="panel-hsaved" class="tab-panel">
+        <div class="designs-grid" id="hairSavedGrid"></div>
+        <p id="hairSavedEmpty" class="empty-msg">No saved looks yet. <a href="#" onclick="showHairTab('styles')" style="color:#f0a800;">Browse styles</a> or use the <a href="#" onclick="showHairTab('color')" style="color:#f0a800;">Color Picker</a>.</p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOOK HAIR MODAL -->
+  <div class="modal-overlay hidden" id="bookHairModal">
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Book Hair Service</h3>
+        <button class="modal-close" onclick="closeModal('bookHairModal')">&#10005;</button>
+      </div>
+      <div class="modal-body">
+        <form class="admin-form">
+          <div class="form-group">
+            <label>Service Type</label>
+            <select id="hairServiceType">
+              <option>Women's Cut &amp; Blowdry</option><option>Men's Cut</option>
+              <option>Full Colour</option><option>Balayage</option>
+              <option>Highlights</option><option>Keratin Treatment</option>
+              <option>Hair Extensions</option><option>Bridal Hair</option>
+            </select>
+          </div>
+          <div class="form-row-2">
+            <div class="form-group"><label>Date</label><input type="date" id="hairDate" /></div>
+            <div class="form-group">
+              <label>Time</label>
+              <select><option>9:00 AM</option><option>10:00 AM</option><option>11:00 AM</option><option>1:00 PM</option><option>2:00 PM</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Reference / Notes</label><textarea rows="3" placeholder="Describe your desired look or paste a reference..."></textarea></div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-sm btn-sm-outline" onclick="closeModal('bookHairModal')">Cancel</button>
+        <button class="btn-sm btn-sm-gold" onclick="confirmHairBook()">Confirm Booking</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const hairStyles = [
+      { id:1,  name:'Soft Layers',       type:'Cut',       length:'Long',   desc:'Effortless long layers with face-framing pieces',  gradient:'linear-gradient(135deg,#3d2314,#8b5e3c)' },
+      { id:2,  name:'Bob Cut',           type:'Cut',       length:'Short',  desc:'Classic chin-length bob, sleek and modern',         gradient:'linear-gradient(135deg,#1a1a1a,#555)' },
+      { id:3,  name:'Lob (Long Bob)',    type:'Cut',       length:'Medium', desc:'Versatile shoulder-length cut with movement',       gradient:'linear-gradient(135deg,#5c3d2e,#a07850)' },
+      { id:4,  name:'Ash Blonde Balayage',type:'Color',    length:'Long',   desc:'Sun-kissed ash blonde with natural grow-out',       gradient:'linear-gradient(135deg,#c8a87a,#e8d5b0)' },
+      { id:5,  name:'Chocolate Brown',   type:'Color',     length:'Medium', desc:'Rich, dimensional chocolate brown all-over color',  gradient:'linear-gradient(135deg,#3d1c02,#7b4a2d)' },
+      { id:6,  name:'Rose Gold Highlights',type:'Color',   length:'Long',   desc:'Warm rose gold highlights on a light base',        gradient:'linear-gradient(135deg,#e8607a,#f0a800)' },
+      { id:7,  name:'Keratin Smoothing', type:'Treatment', length:'Long',   desc:'Frizz-free, silky smooth finish lasting 3 months',  gradient:'linear-gradient(135deg,#2d1054,#7b2fa0)' },
+      { id:8,  name:'Tape-In Extensions',type:'Extension', length:'Long',   desc:'Seamless length and volume with tape-in method',    gradient:'linear-gradient(135deg,#5c3d2e,#c8a87a)' },
+      { id:9,  name:'Bridal Updo',       type:'Style',     length:'Long',   desc:'Elegant updo perfect for weddings and events',      gradient:'linear-gradient(135deg,#f0a800,#fff3c0)' },
+      { id:10, name:'Beach Waves',       type:'Style',     length:'Medium', desc:'Effortless tousled waves for a relaxed look',       gradient:'linear-gradient(135deg,#c8a87a,#f0a800)' },
+      { id:11, name:'Pixie Cut',         type:'Cut',       length:'Short',  desc:'Bold and chic ultra-short pixie cut',               gradient:'linear-gradient(135deg,#1a1a1a,#7b2fa0)' },
+      { id:12, name:'Purple Fantasy',    type:'Color',     length:'Long',   desc:'Vivid purple fantasy color with gradient fade',     gradient:'linear-gradient(135deg,#7b2fa0,#d060f0)' },
+    ];
+
+    const hairColors = [
+      { name:'Black',       hex:'#1a1a1a' }, { name:'Dark Brown',  hex:'#3d1c02' },
+      { name:'Brown',       hex:'#7b4a2d' }, { name:'Light Brown', hex:'#a07850' },
+      { name:'Dirty Blonde',hex:'#c8a87a' }, { name:'Blonde',      hex:'#e8d5b0' },
+      { name:'Ash Blonde',  hex:'#d4c9a8' }, { name:'Red',         hex:'#8b2500' },
+      { name:'Auburn',      hex:'#a0522d' }, { name:'Rose Gold',   hex:'#e8607a' },
+      { name:'Purple',      hex:'#7b2fa0' }, { name:'Platinum',    hex:'#f0ece0' },
+    ];
+
+    const techniques = ['Balayage','Highlights','Ombre','Full Color','Toner','Bleach & Tone'];
+
+    let hairState = { base: hairColors[2], target: hairColors[4], technique: 'Balayage' };
+    let savedHairLooks = JSON.parse(localStorage.getItem('savedHairLooks') || '[]');
+
+    function showHairTab(tab) {
+      ['styles','color','hsaved'].forEach(t => {
+        document.getElementById('panel-' + t).classList.toggle('active', t === tab);
+        document.getElementById('tab-' + t).classList.toggle('active', t === tab);
+      });
+      if (tab === 'hsaved') renderHairSaved();
+    }
+
+    function renderHair(data) {
+      document.getElementById('hairGrid').innerHTML = data.map(d => `
+        <div class="design-card">
+          <div class="design-preview" style="background:${d.gradient};"></div>
+          <div class="design-info">
+            <p class="design-name">${d.name}</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+              <span class="design-tag">${d.type}</span>
+              <span class="design-tag">${d.length}</span>
+            </div>
+            <p style="font-size:11px;color:#9a7ab8;margin-bottom:10px;line-height:1.5;">${d.desc}</p>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-sm btn-sm-outline" style="flex:1;" onclick="saveHairStyle(${d.id})">Save</button>
+              <button class="btn-sm btn-sm-gold" style="flex:1;" onclick="openModal('bookHairModal')">Book</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterHair() {
+      const search = document.getElementById('hairSearch').value.toLowerCase();
+      const type   = document.getElementById('hairType').value;
+      const length = document.getElementById('hairLength').value;
+      renderHair(hairStyles.filter(d => {
+        return (!search || d.name.toLowerCase().includes(search)) &&
+               (!type   || d.type === type) &&
+               (!length || d.length === length);
+      }));
+    }
+
+    function saveHairStyle(id) {
+      const d = hairStyles.find(x => x.id === id);
+      if (!savedHairLooks.find(s => s.id === id)) {
+        savedHairLooks.push(d);
+        localStorage.setItem('savedHairLooks', JSON.stringify(savedHairLooks));
+        showToast('Look saved!');
+      } else { showToast('Already saved.'); }
+    }
+
+    function buildHairColorSwatches(containerId, key) {
+      document.getElementById(containerId).innerHTML = hairColors.map(c => `
+        <div class="color-swatch ${hairState[key].name === c.name ? 'selected' : ''}"
+             style="background:${c.hex};" title="${c.name}"
+             onclick="selectHairColor('${key}','${c.name}','${c.hex}',this)"></div>
+      `).join('');
+    }
+
+    function selectHairColor(key, name, hex, el) {
+      hairState[key] = { name, hex };
+      el.closest('.color-swatches').querySelectorAll('.color-swatch').forEach(s => s.classList.remove('selected'));
+      el.classList.add('selected');
+      updateHairPreview();
+    }
+
+    function buildTechniques() {
+      document.getElementById('hairTechniques').innerHTML = techniques.map(t => `
+        <button class="art-btn ${hairState.technique === t ? 'selected' : ''}"
+                onclick="selectTechnique('${t}',this)">${t}</button>
+      `).join('');
+    }
+
+    function selectTechnique(t, el) {
+      hairState.technique = t;
+      document.querySelectorAll('#hairTechniques .art-btn').forEach(b => b.classList.remove('selected'));
+      el.classList.add('selected');
+      updateHairPreview();
+    }
+
+    function updateHairPreview() {
+      const hair = document.getElementById('hairPreviewColor');
+      hair.style.background = `linear-gradient(180deg, ${hairState.base.hex} 0%, ${hairState.target.hex} 100%)`;
+      document.getElementById('hairColorLabel').textContent = `${hairState.base.name} → ${hairState.target.name}`;
+      document.getElementById('hairTechLabel').textContent  = hairState.technique;
+    }
+
+    function saveHairColor() {
+      const look = {
+        id: Date.now(),
+        name: `${hairState.base.name} → ${hairState.target.name}`,
+        type: 'Color', length: 'Custom',
+        desc: hairState.technique,
+        gradient: `linear-gradient(135deg,${hairState.base.hex},${hairState.target.hex})`,
+      };
+      savedHairLooks.push(look);
+      localStorage.setItem('savedHairLooks', JSON.stringify(savedHairLooks));
+      showToast('Color look saved!');
+    }
+
+    function renderHairSaved() {
+      const grid  = document.getElementById('hairSavedGrid');
+      const empty = document.getElementById('hairSavedEmpty');
+      if (!savedHairLooks.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+      empty.style.display = 'none';
+      grid.innerHTML = savedHairLooks.map(d => `
+        <div class="design-card">
+          <div class="design-preview" style="background:${d.gradient};"></div>
+          <div class="design-info">
+            <p class="design-name">${d.name}</p>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">
+              <span class="design-tag">${d.type}</span>
+              <span class="design-tag">${d.desc}</span>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn-sm btn-sm-danger" style="flex:1;" onclick="removeHairSaved(${d.id})">Remove</button>
+              <button class="btn-sm btn-sm-gold" style="flex:1;" onclick="openModal('bookHairModal')">Book</button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function removeHairSaved(id) {
+      savedHairLooks = savedHairLooks.filter(d => d.id !== id);
+      localStorage.setItem('savedHairLooks', JSON.stringify(savedHairLooks));
+      renderHairSaved();
+    }
+
+    function confirmHairBook() {
+      closeModal('bookHairModal');
+      showToast('Hair booking submitted!');
+    }
+
+    function showToast(msg) {
+      let t = document.getElementById('toast');
+      if (!t) {
+        t = document.createElement('div');
+        t.id = 'toast';
+        t.style.cssText = 'position:fixed;bottom:32px;right:32px;background:#f0a800;color:#1a0a2e;font-family:Montserrat,sans-serif;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:12px 24px;z-index:9999;opacity:0;transition:opacity 0.3s;';
+        document.body.appendChild(t);
+      }
+      t.textContent = msg;
+      t.style.opacity = '1';
+      setTimeout(() => t.style.opacity = '0', 2500);
+    }
+
+    function openModal(id)  { document.getElementById(id).classList.remove('hidden'); }
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+    document.querySelectorAll('.modal-overlay').forEach(o => {
+      o.addEventListener('click', e => { if (e.target === o) o.classList.add('hidden'); });
+    });
+
+    buildHairColorSwatches('hairBaseColors', 'base');
+    buildHairColorSwatches('hairTargetColors', 'target');
+    buildTechniques();
+    updateHairPreview();
+    renderHair(hairStyles);
+  </script>
+</body>
+</html>
