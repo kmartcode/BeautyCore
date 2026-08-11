@@ -49,7 +49,9 @@ from PIL import Image
 from diffusers import StableDiffusionImg2ImgPipeline, StableDiffusionPipeline
 
 # Point this at the .safetensors file, or at a directory containing one.
-# To compare checkpoints, swap in e.g. ".../BeautyCore_Model/checkpoint-1000".
+# To compare training stages, swap in ".../BeautyCore_Model/checkpoint-1000".
+# The top-level file is the finished 1500-step export; the checkpoint folders
+# hold the same weights in PEFT key naming, which _load_lora_state converts.
 LORA_PATH = "/content/pytorch_lora_weights.safetensors"
 
 # How strongly the LoRA is applied. 0 = base model, 1 = full strength.
@@ -126,15 +128,43 @@ def _resolve_lora(path: str) -> str | None:
 LORA_FILE = _resolve_lora(LORA_PATH)
 LORA_READY = False
 
+
+def _load_lora_state(path: str):
+    """
+    Read a LoRA into a state dict, normalising the key naming first.
+
+    The two files in the model folder are NOT interchangeable:
+
+      pytorch_lora_weights.safetensors  (top level)  -> diffusers naming,
+                                                        `lora.down` / `lora.up`
+      checkpoint-*/pytorch_lora_weights.safetensors  -> PEFT naming,
+                                                        `lora_A` / `lora_B`
+
+    The final export was converted on the way out; the intermediate checkpoints
+    were not. load_lora_weights() wants the diffusers spelling, so translate
+    when we see the PEFT one — otherwise swapping in a checkpoint to compare
+    training stages dies on unexpected keys.
+    """
+    from safetensors.torch import load_file
+
+    state = load_file(path)
+    if any(".lora_A" in k or ".lora_B" in k for k in state):
+        state = {
+            k.replace(".lora_A.", ".lora.down.").replace(".lora_B.", ".lora.up."): v
+            for k, v in state.items()
+        }
+        print("  (converted PEFT lora_A/lora_B keys to diffusers naming)")
+    return state
+
+
 if LORA_FILE:
     try:
-        img2img.load_lora_weights(LORA_FILE)
+        img2img.load_lora_weights(_load_lora_state(LORA_FILE))
         LORA_READY = True
         print(f"✓ LoRA loaded from {LORA_FILE}")
     except Exception as e:
         print(f"✗ LoRA failed to load: {type(e).__name__}: {e}")
-        print("  This LoRA uses the legacy diffusers 'lora.down/lora.up' key")
-        print("  naming. If load failed on key names, try: pip install -U diffusers")
+        print("  If this failed on key names, try: pip install -U diffusers peft")
 else:
     print(f"⚠ No .safetensors found at {LORA_PATH} — serving BASE model only.")
     print("  Upload the file or fix the path, then re-run this cell.")

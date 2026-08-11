@@ -125,6 +125,12 @@ Notes worth knowing:
   A nails LoRA applied to a hair photo produces nonsense, so hair requests get
   an honest "not available yet" instead. Widen it to `hair,nails` once a hair
   LoRA is trained.
+- **Upload the top-level `pytorch_lora_weights.safetensors`,** not one from a
+  `checkpoint-*` folder. The top-level file is the finished 1500-step export in
+  diffusers key naming; the checkpoints hold the same weights under PEFT naming
+  (`lora_A`/`lora_B`). The notebook converts PEFT keys automatically, so
+  pointing `LORA_PATH` at `checkpoint-1000` to compare training stages does
+  work — but the top-level file is the one to start with.
 - **Checkpoints at 500/1000/1500 steps** are in the model folder. 1500 is the
   default; warmup ran for the first 500, so `checkpoint-500` is undertrained.
   If 1500 looks overcooked, compare against `checkpoint-1000`.
