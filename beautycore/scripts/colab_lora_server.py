@@ -72,23 +72,29 @@ BASE_CANDIDATES = [
 img2img = None
 BASE_MODEL = None
 for candidate in BASE_CANDIDATES:
-    try:
-        print(f"Trying base model: {candidate} ...")
-        img2img = StableDiffusionImg2ImgPipeline.from_pretrained(
-            candidate,
-            torch_dtype=torch.float16,
-            use_safetensors=True,
-            # SD 1.5 ships an NSFW checker that false-positives on close-up
-            # skin — hands and faces, i.e. exactly this app's input — and
-            # returns a solid black image. Off, or previews mysteriously blank.
-            safety_checker=None,
-            requires_safety_checker=False,
-        ).to("cuda")
-        BASE_MODEL = candidate
-        print(f"✓ Loaded {candidate}")
+    # These mirrors publish F32 weights with no fp16 variant, so do NOT pass
+    # variant="fp16" — it raises. torch_dtype casts at load time instead.
+    # Try safetensors first, then fall back for any mirror that only has .bin.
+    for use_st in (True, False):
+        try:
+            print(f"Trying base model: {candidate} (safetensors={use_st}) ...")
+            img2img = StableDiffusionImg2ImgPipeline.from_pretrained(
+                candidate,
+                torch_dtype=torch.float16,
+                use_safetensors=use_st,
+                # SD 1.5 ships an NSFW checker that false-positives on close-up
+                # skin — hands and faces, i.e. exactly this app's input — and
+                # returns a solid black image. Off, or previews mysteriously blank.
+                safety_checker=None,
+                requires_safety_checker=False,
+            ).to("cuda")
+            BASE_MODEL = candidate
+            print(f"✓ Loaded {candidate}")
+            break
+        except Exception as e:
+            print(f"  ✗ {type(e).__name__}: {str(e)[:160]}")
+    if img2img is not None:
         break
-    except Exception as e:
-        print(f"  ✗ {type(e).__name__}: {str(e)[:160]}")
 
 if img2img is None:
     raise RuntimeError(
