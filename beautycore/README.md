@@ -50,7 +50,7 @@ components/          ui.tsx (shared primitives), sidebars, navbar, footer
 context/             AuthContext
 db/                  schema.ts, index.ts, seed.ts
 lib/                 auth.ts, services.ts, ai/
-scripts/             colab_lora_server.py
+scripts/             BeautyCore_LoRA_Colab.ipynb, colab_lora_server.py
 ```
 
 **Auth** — bcrypt password hashing, JWT in an HttpOnly cookie (`jose`), 7-day
@@ -90,10 +90,11 @@ The trained model is a **Stable Diffusion 1.5** LoRA (rank 32, 512px, 1500
 steps), trained with the diffusers `train_text_to_image_lora.py` script. It is
 UNet-only — no text encoder weights.
 
-`scripts/colab_lora_server.py` turns a Colab notebook into an image-to-image
-endpoint for it:
+`scripts/BeautyCore_LoRA_Colab.ipynb` turns a Colab notebook into an
+image-to-image endpoint for it:
 
-1. Open the script in Colab, set the runtime to **T4 GPU**
+1. Upload the notebook to [colab.research.google.com](https://colab.research.google.com)
+   (**File → Upload notebook**), then set **Runtime → Change runtime type → T4 GPU**
 2. Upload `pytorch_lora_weights.safetensors` (or mount Drive and point
    `LORA_PATH` at the model folder), then run the cells in order
 3. **Run the smoke-test cell and look at the output.** Training used
@@ -127,6 +128,13 @@ Notes worth knowing:
 - **Checkpoints at 500/1000/1500 steps** are in the model folder. 1500 is the
   default; warmup ran for the first 500, so `checkpoint-500` is undertrained.
   If 1500 looks overcooked, compare against `checkpoint-1000`.
+
+The notebook is generated from `scripts/colab_lora_server.py`, which is the
+readable source of truth. If you edit the script, regenerate with:
+
+```bash
+py scripts/make_notebook.py scripts/colab_lora_server.py scripts/BeautyCore_LoRA_Colab.ipynb
+```
 
 ---
 
