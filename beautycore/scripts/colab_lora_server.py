@@ -111,10 +111,34 @@ txt2img.set_progress_bar_config(disable=True)
 img2img.set_progress_bar_config(disable=True)
 
 
+def _safe_move(src: str, dst: str) -> str:
+    """shutil.move raises if src and dst are the same file; uploads often are."""
+    import shutil
+
+    if os.path.abspath(src) != os.path.abspath(dst):
+        shutil.move(src, dst)
+    return dst
+
+
 def _resolve_lora(path: str) -> str | None:
-    """Accept either a .safetensors file or a directory holding one."""
+    """
+    Find the LoRA, trying increasingly desperate measures:
+
+      1. the exact path
+      2. a .safetensors inside it, if `path` is a directory
+      3. anywhere under /content — drag-and-drop uploads land in a subfolder
+         more often than you would think, and Drive mounts sit levels down
+      4. ask for it with a file picker
+
+    Only returns None if all four fail. Step 4 matters: the file pane silently
+    drops uploads if the runtime reconnects mid-transfer, and the picker is the
+    reliable path.
+    """
+    import glob
+
     if os.path.isfile(path):
         return path
+
     if os.path.isdir(path):
         cand = os.path.join(path, "pytorch_lora_weights.safetensors")
         if os.path.isfile(cand):
@@ -122,6 +146,49 @@ def _resolve_lora(path: str) -> str | None:
         for f in sorted(os.listdir(path)):
             if f.endswith(".safetensors"):
                 return os.path.join(path, f)
+
+    hits = sorted(glob.glob("/content/**/*.safetensors", recursive=True))
+    if hits:
+        print(f"⚠ Nothing at {path}, but found {hits[0]} — using that.")
+        return hits[0]
+
+    try:
+        from google.colab import files
+    except Exception:
+        return None
+
+    print("─" * 70)
+    print("No .safetensors found anywhere under /content.")
+    print("Select pytorch_lora_weights.safetensors (25 MB) from your")
+    print("BeautyCore_Model folder. You can select a nail photo at the same")
+    print("time to enable the image-to-image preview further down.")
+    print("─" * 70)
+    try:
+        uploaded = files.upload()
+    except Exception as e:
+        print(f"Upload picker unavailable: {type(e).__name__}: {e}")
+        return None
+
+    found = None
+    for fn in list(uploaded):
+        if fn.endswith(".safetensors"):
+            found = _safe_move(fn, "/content/pytorch_lora_weights.safetensors")
+        elif fn.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+            _safe_move(fn, "/content/test.jpg")
+            print("✓ Saved your photo as /content/test.jpg")
+    return found
+
+
+def _find_test_photo() -> str | None:
+    """Any photo in /content, so the filename does not have to be exactly right."""
+    import glob
+
+    for exact in ("/content/test.jpg", "/content/test.jpeg", "/content/test.png"):
+        if os.path.isfile(exact):
+            return exact
+    for p in sorted(glob.glob("/content/*")):
+        if os.path.isfile(p) and p.lower().endswith((".jpg", ".jpeg", ".png", ".webp")):
+            return p
     return None
 
 
@@ -158,16 +225,23 @@ def _load_lora_state(path: str):
 
 
 if LORA_FILE:
+    size = os.path.getsize(LORA_FILE)
     try:
         img2img.load_lora_weights(_load_lora_state(LORA_FILE))
         LORA_READY = True
-        print(f"✓ LoRA loaded from {LORA_FILE}")
+        print(f"✓ LoRA loaded from {LORA_FILE} ({size:,} bytes)")
     except Exception as e:
-        print(f"✗ LoRA failed to load: {type(e).__name__}: {e}")
-        print("  If this failed on key names, try: pip install -U diffusers peft")
+        print("=" * 70)
+        print(f"✗ LoRA FAILED TO LOAD: {type(e).__name__}: {e}")
+        print("  If this was a key-name error: pip install -U diffusers peft")
+        print("=" * 70)
 else:
-    print(f"⚠ No .safetensors found at {LORA_PATH} — serving BASE model only.")
-    print("  Upload the file or fix the path, then re-run this cell.")
+    print("=" * 70)
+    print("⚠ NO LoRA FILE FOUND — this notebook is serving the BASE model only.")
+    print(f"  Looked at: {LORA_PATH}, then everywhere under /content.")
+    print("  Previews would be generic Stable Diffusion, not your trained style.")
+    print("  Upload pytorch_lora_weights.safetensors, then RE-RUN THIS CELL.")
+    print("=" * 70)
 
 
 def set_lora_scale(scale: float):
@@ -297,19 +371,31 @@ if LORA_READY:
     else:
         print("✓ PASS — the LoRA measurably changes the output.")
 else:
-    print("Skipped: no LoRA loaded.")
+    print("=" * 70)
+    print("  SMOKE TEST SKIPPED — NO LoRA IS LOADED. Nothing was tested.")
+    print("")
+    print("  Scroll up to the previous cell and read its output. It printed")
+    print("  either '⚠ NO LoRA FILE FOUND' (the upload did not land) or")
+    print("  '✗ LoRA FAILED TO LOAD' (a real error worth reporting).")
+    print("")
+    print("  Fix that, re-run the previous cell, then re-run this one.")
+    print("=" * 70)
 
 
-# Optional: upload one real client photo as /content/test.jpg to preview the
-# actual img2img path the app uses. This is the more important test of the two.
-if LORA_READY and os.path.exists("/content/test.jpg"):
-    src = _decode(base64.b64encode(open("/content/test.jpg", "rb").read()).decode())
+# Optional but the more important of the two tests: any photo in /content gets
+# previewed through the exact img2img path the app uses.
+TEST_PHOTO = _find_test_photo()
+
+if LORA_READY and TEST_PHOTO:
+    print(f"\nUsing your photo: {TEST_PHOTO}")
+    src = _decode(base64.b64encode(open(TEST_PHOTO, "rb").read()).decode())
     strengths = [0.35, 0.5, 0.65]
     outs = [render(TEST_PROMPT, image=src, strength=s, seed=SEED) for s in strengths]
-    print("\nimg2img strength sweep — pick the lowest value that still restyles:")
+    print("img2img strength sweep — pick the lowest value that still restyles:")
     display(grid([src] + outs, ["original"] + [f"strength {s}" for s in strengths]))
-else:
-    print("\n(Upload /content/test.jpg to preview the img2img path the app uses.)")
+elif LORA_READY:
+    print("\n(No photo in /content. Upload any nail photo and re-run this cell")
+    print(" to preview the image-to-image path the app actually uses.)")
 
 
 # --- Cell 4: the API -------------------------------------------------------
