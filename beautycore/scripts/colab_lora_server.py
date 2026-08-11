@@ -36,6 +36,13 @@
 
 
 # --- Cell 1: install -------------------------------------------------------
+# Colab's base image ships torchao 0.10.0. Current peft/diffusers probe for
+# torchao and *raise* if the installed version is too old, rather than skipping
+# it — which kills load_lora_weights() with a confusing ImportError. Nothing
+# here needs torchao (it is a quantisation library), so remove it outright.
+# Upgrading it instead would drag in a different torch and break CUDA.
+!pip uninstall -y -q torchao
+
 !pip install -q "diffusers>=0.31" transformers accelerate peft safetensors \
                 fastapi "uvicorn[standard]" nest-asyncio pillow
 !wget -q -O cloudflared https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64
@@ -233,7 +240,15 @@ if LORA_FILE:
     except Exception as e:
         print("=" * 70)
         print(f"✗ LoRA FAILED TO LOAD: {type(e).__name__}: {e}")
-        print("  If this was a key-name error: pip install -U diffusers peft")
+        if "torchao" in str(e):
+            print("")
+            print("  This is Colab's environment, not your model. The base image")
+            print("  ships an old torchao and peft raises instead of skipping it.")
+            print("  Fix: run  !pip uninstall -y torchao  then Runtime >")
+            print("  Restart session, then re-run cells 1 and 2. The base model")
+            print("  stays cached on disk, so the reload takes seconds.")
+        else:
+            print("  If this was a key-name error: pip install -U diffusers peft")
         print("=" * 70)
 else:
     print("=" * 70)
