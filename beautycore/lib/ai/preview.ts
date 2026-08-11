@@ -5,13 +5,16 @@ import type { StyleCategory } from './types';
 /**
  * Image-generation providers.
  *
- * Preview generation is deliberately behind an interface: as of this build no
- * provider is available on the project's free-tier keys (HuggingFace retired
- * SDXL serverless; Gemini image models return quota `limit: 0` without
- * billing; Replicate needs a paid token). Analysis still works, so the app is
- * useful today and a provider can be enabled later without touching routes.
+ * Preview generation sits behind an interface because the hosted options all
+ * failed on this project's free-tier keys (HuggingFace retired SDXL
+ * serverless; Gemini image models return quota `limit: 0` without billing;
+ * Replicate needs a paid token). Analysis never depended on any of them, so
+ * the app stayed useful while a generator was sorted out.
  *
- * To enable one, set PREVIEW_PROVIDER in .env.local and add the matching key.
+ * The working path is now `lora`: a self-trained Stable Diffusion 1.5 LoRA
+ * served over HTTP from Colab. See scripts/colab_lora_server.py.
+ *
+ * To switch providers, set PREVIEW_PROVIDER in .env.local. No route changes.
  */
 
 export interface GenerateRequest {
@@ -143,15 +146,20 @@ const geminiProvider: PreviewProvider = {
 // ─── LoRA (Colab-hosted, via tunnel) ────────────────────────────────────────
 
 /**
- * Talks to a self-hosted LoRA inference server — typically the Colab notebook
- * in scripts/colab_lora_server.py exposed through a cloudflared tunnel.
+ * Talks to a self-hosted LoRA inference server — the Colab notebook in
+ * scripts/colab_lora_server.py, exposed through a cloudflared tunnel.
  *
  * Contract:
  *   POST {LORA_ENDPOINT_URL}/generate
- *   { prompt, image?, prompt_strength }  ->  { image: "<base64 png>" }
+ *   { prompt, image?, prompt_strength, lora_scale? } -> { image: "<base64 png>" }
  *
  * The tunnel URL changes on every notebook restart, so failures here are
  * expected and get a specific message rather than a generic error.
+ *
+ * LORA_STYLE_SCOPE limits which categories this model is allowed to render.
+ * A LoRA trained only on nails will happily paint nail art onto a head of
+ * hair, which looks worse than admitting the model isn't ready — so
+ * out-of-scope requests return the honest "not available" path instead.
  */
 const loraProvider: PreviewProvider = {
   name: 'lora',
@@ -169,15 +177,33 @@ const loraProvider: PreviewProvider = {
       };
     }
 
+    // Defaults to nails only: that is the model that exists today. Set
+    // LORA_STYLE_SCOPE=hair,nails once a hair LoRA is trained and loaded.
+    const scope = (process.env.LORA_STYLE_SCOPE ?? 'nails')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean);
+
+    if (!scope.includes(styleType)) {
+      return {
+        ok: false,
+        reason: 'not_configured',
+        message: `${styleType === 'hair' ? 'Hair' : 'Nail'} previews aren't available yet — that style model is still being trained. Your analysis and recommendations above are live.`,
+        provider: 'lora',
+      };
+    }
+
     // Nails need the hand kept intact, so change less of the source image.
     // Hair can move further from the original without looking wrong.
     const promptStrength = styleType === 'nails' ? 0.5 : 0.65;
 
-    // Cold start loads SDXL onto the GPU, which is slow the first time.
+    // Cold start loads SD 1.5 onto the Colab GPU, which is slow the first time.
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 180_000);
 
     try {
+      const loraScale = Number(process.env.LORA_SCALE ?? '0.8');
+
       const res = await fetch(`${base}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -188,6 +214,7 @@ const loraProvider: PreviewProvider = {
             ? `data:${sourceImage.mimeType};base64,${sourceImage.base64}`
             : undefined,
           prompt_strength: promptStrength,
+          lora_scale: Number.isFinite(loraScale) ? loraScale : 0.8,
         }),
       });
 

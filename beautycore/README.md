@@ -84,21 +84,49 @@ Two stages, deliberately separated:
 Every generation is persisted to `ai_generations` regardless of whether a
 preview rendered, so the analysis is never lost.
 
-### Wiring up a LoRA
+### Wiring up the LoRA
+
+The trained model is a **Stable Diffusion 1.5** LoRA (rank 32, 512px, 1500
+steps), trained with the diffusers `train_text_to_image_lora.py` script. It is
+UNet-only — no text encoder weights.
 
 `scripts/colab_lora_server.py` turns a Colab notebook into an image-to-image
-endpoint for a trained LoRA:
+endpoint for it:
 
-1. Train your LoRA, export `.safetensors`
-2. Paste the script into Colab (**T4 GPU**), upload the weights, Run all
-3. Copy the printed `https://….trycloudflare.com` URL
-4. Add to `.env.local` and restart:
+1. Open the script in Colab, set the runtime to **T4 GPU**
+2. Upload `pytorch_lora_weights.safetensors` (or mount Drive and point
+   `LORA_PATH` at the model folder), then run the cells in order
+3. **Run the smoke-test cell and look at the output.** Training used
+   `validation_prompt: null`, so no sample image was produced during those 1500
+   steps — the smoke test is the first look anyone gets. It sweeps LoRA scale
+   and asserts the output actually differs with the LoRA off vs on, which
+   catches a LoRA that loads but never reaches the UNet.
+4. Copy the printed `https://….trycloudflare.com` URL
+5. Add to `.env.local` and restart:
    ```
    PREVIEW_PROVIDER=lora
    LORA_ENDPOINT_URL=https://your-tunnel.trycloudflare.com
    ```
 
 The tunnel URL changes on every Colab restart — re-paste it each session.
+
+Notes worth knowing:
+
+- **It's SD 1.5, not SDXL.** Serving it on an SDXL base fails outright: this
+  LoRA's cross-attention layers are 768-dim against SDXL's 2048.
+- **The base model id in `hparams.yml` is dead.** Runway deleted their
+  HuggingFace repos, so `runwayml/stable-diffusion-v1-5` now 404s. The script
+  tries the surviving mirrors of the same weights in order.
+- **The NSFW safety checker is disabled deliberately.** SD 1.5's checker
+  false-positives on close-up skin — hands and faces, i.e. this app's only
+  input — and returns a solid black image instead of an error.
+- **`LORA_STYLE_SCOPE` defaults to `nails`,** matching the model that exists.
+  A nails LoRA applied to a hair photo produces nonsense, so hair requests get
+  an honest "not available yet" instead. Widen it to `hair,nails` once a hair
+  LoRA is trained.
+- **Checkpoints at 500/1000/1500 steps** are in the model folder. 1500 is the
+  default; warmup ran for the first 500, so `checkpoint-500` is undertrained.
+  If 1500 looks overcooked, compare against `checkpoint-1000`.
 
 ---
 
