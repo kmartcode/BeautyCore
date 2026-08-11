@@ -14,6 +14,18 @@
 #  SD 1.5, NOT SDXL. Serving it on an SDXL base fails outright: this LoRA's
 #  cross-attention layers are 768-dim, SDXL's are 2048.
 #
+#  NAIL MASKING
+#  ------------
+#  Previews run as masked inpainting rather than plain img2img. A fingernail is
+#  roughly 1% of a hand photo, and img2img spreads its changes evenly over the
+#  whole frame — so in practice it restyles the rings and the background and
+#  leaves the nails alone. The app sends one bounding box per nail (from Gemini,
+#  see lib/ai/detect.ts); this server rasterises them into a mask and repaints
+#  only inside it. That is what lets strength go high enough to genuinely change
+#  nail colour without touching anything else.
+#
+#  Requests without mask_boxes still work — they take the old img2img path.
+#
 #  HOW TO USE
 #  ----------
 #  1. Runtime > Change runtime type > T4 GPU. Then run the cells in order.
@@ -21,7 +33,8 @@
 #     LORA_PATH at BeautyCore_Model/.
 #  3. Run Cell 3 (smoke test) and LOOK AT THE OUTPUT before wiring up the app.
 #     Nothing was validated during training, so this is the first time anyone
-#     sees what this model actually produces.
+#     sees what this model actually produces. To exercise the masked path here
+#     too, paste real boxes into NAIL_BOXES — the cell explains where from.
 #  4. Copy the printed https://....trycloudflare.com URL into .env.local:
 #         PREVIEW_PROVIDER=lora
 #         LORA_ENDPOINT_URL=https://....trycloudflare.com
@@ -52,8 +65,12 @@
 # --- Cell 2: load the pipeline ---------------------------------------------
 import os, io, re, time, base64, threading, subprocess
 import torch
-from PIL import Image
-from diffusers import StableDiffusionImg2ImgPipeline, StableDiffusionPipeline
+from PIL import Image, ImageDraw, ImageFilter
+from diffusers import (
+    StableDiffusionImg2ImgPipeline,
+    StableDiffusionInpaintPipeline,
+    StableDiffusionPipeline,
+)
 
 # Point this at the .safetensors file, or at a directory containing one.
 # To compare training stages, swap in ".../BeautyCore_Model/checkpoint-1000".
@@ -68,6 +85,20 @@ DEFAULT_LORA_SCALE = 0.8
 # duplicated fingers and doubled subjects. 640 keeps a little more nail
 # detail while staying close to native. Lower it to 512 if you see artefacts.
 MAX_SIDE = 640
+
+# Mask geometry, used when the app sends nail boxes (see build_mask).
+# Tune these by looking at the overlay in the smoke test, not by guessing:
+#   MASK_PAD  grows each box outward, giving the model room to place the tip
+#             and the cuticle edge. Too small and long nails get clipped
+#             mid-repaint; too large and it starts painting knuckle.
+#   MASK_BLUR feathers the boundary so the new nail fades into the finger.
+#             Too small leaves a visible cut-out edge. Too large is worse than
+#             it looks: a nail is only ~45px across at MAX_SIDE=640, so a blur
+#             of 15 erodes the fully-white core to nothing and every pixel ends
+#             up only partially repainted. At 5, five nails come out as ~8.6% of
+#             the frame touched with a ~1.2% full-strength core.
+MASK_PAD = 0.15
+MASK_BLUR = 5
 
 # runwayml deleted their Stable Diffusion repos from HuggingFace in 2024, so the
 # id recorded in hparams.yml now 404s. These are the surviving mirrors of the
@@ -116,6 +147,39 @@ if img2img is None:
 txt2img = StableDiffusionPipeline(**img2img.components)
 txt2img.set_progress_bar_config(disable=True)
 img2img.set_progress_bar_config(disable=True)
+
+# Masked inpainting — the path that makes nail previews actually work.
+#
+# Also the same UNet, so also free in VRAM, and the LoRA loaded below still
+# applies: a LoRA modifies the attention layers (to_q/to_k/to_v/to_out), which
+# are shared, and nothing about the pipeline wrapper changes them.
+#
+# Note this is the standard SD 1.5 checkpoint, not the dedicated 9-channel
+# inpainting one. diffusers handles that case explicitly: when
+# unet.config.in_channels == 4 it blends latents inside the mask rather than
+# feeding extra mask channels to the UNet. That is what we want — the dedicated
+# inpainting checkpoint would be another 4 GB download AND a base this LoRA was
+# never trained against.
+inpaint = None
+try:
+    inpaint = StableDiffusionInpaintPipeline.from_pipe(img2img)
+except Exception as e:
+    print(f"  from_pipe unavailable ({type(e).__name__}), trying components...")
+    try:
+        inpaint = StableDiffusionInpaintPipeline(
+            **img2img.components, requires_safety_checker=False
+        )
+    except Exception as e2:
+        print("=" * 70)
+        print(f"⚠ INPAINTING UNAVAILABLE: {type(e2).__name__}: {e2}")
+        print("  Nail masking will silently fall back to plain img2img, which")
+        print("  restyles rings and background more than nails. Try:")
+        print("      !pip install -U diffusers")
+        print("=" * 70)
+
+if inpaint is not None:
+    inpaint.set_progress_bar_config(disable=True)
+    print("✓ Inpainting pipeline ready (nail masking available)")
 
 
 def _safe_move(src: str, dst: str) -> str:
@@ -309,9 +373,55 @@ def _decode(b64: str) -> Image.Image:
     return img.resize((w, h), Image.LANCZOS)
 
 
+def build_mask(size, boxes, pad=None, blur=None):
+    """
+    Rasterise nail bounding boxes into an inpainting mask. White = repaint.
+
+    `boxes` are [ymin, xmin, ymax, xmax] scaled 0-1000 — Gemini's native output
+    format, produced by lib/ai/detect.ts in the app and by
+    scripts/nail-boxes.ts on the command line.
+
+    Ellipses rather than rectangles, because a nail is rounded and a rectangle
+    puts paint on the skin at all four corners. Blurred at the end so the new
+    nail fades into the finger; a hard edge reads as a pasted cut-out.
+    """
+    pad = MASK_PAD if pad is None else pad
+    blur = MASK_BLUR if blur is None else blur
+
+    W, H = size
+    mask = Image.new("L", (W, H), 0)
+    draw = ImageDraw.Draw(mask)
+
+    for box in boxes:
+        ymin, xmin, ymax, xmax = (float(v) for v in box[:4])
+        x0, y0 = xmin / 1000 * W, ymin / 1000 * H
+        x1, y1 = xmax / 1000 * W, ymax / 1000 * H
+        dx, dy = (x1 - x0) * pad, (y1 - y0) * pad
+        draw.ellipse([x0 - dx, y0 - dy, x1 + dx, y1 + dy], fill=255)
+
+    return mask.filter(ImageFilter.GaussianBlur(blur))
+
+
 def render(prompt, image=None, strength=0.5, scale=DEFAULT_LORA_SCALE,
-           steps=40, guidance=7.5, seed=None):
-    """Single entry point used by both the smoke test and the API."""
+           steps=40, guidance=7.5, seed=None, mask_boxes=None,
+           mask_strength=0.95):
+    """
+    Single entry point used by both the smoke test and the API. Three paths:
+
+      image + mask_boxes  masked inpainting. Only the nails are repainted, so
+                          `mask_strength` can be high enough to actually change
+                          their colour without touching rings or background.
+                          This is the one that works.
+
+      image only          img2img across the whole frame at `strength`. Noise
+                          is spread uniformly, and a nail is ~1% of the frame,
+                          so the model reliably restyles the jewellery and
+                          leaves the nails alone. Kept as the fallback for when
+                          nail detection returns nothing.
+
+      neither             txt2img — what the smoke test uses to see the LoRA in
+                          isolation.
+    """
     gen = torch.Generator("cuda").manual_seed(seed) if seed is not None else None
     opts = dict(
         prompt=prompt,
@@ -320,6 +430,16 @@ def render(prompt, image=None, strength=0.5, scale=DEFAULT_LORA_SCALE,
         generator=gen,
         **_call_kwargs(scale),
     )
+
+    if image is not None and mask_boxes and inpaint is not None:
+        return inpaint(
+            image=image,
+            mask_image=build_mask(image.size, mask_boxes),
+            # Unlike img2img, this is bounded by the mask, so it can go high.
+            strength=max(0.1, min(mask_strength, 1.0)),
+            num_inference_steps=steps,
+            **opts,
+        ).images[0]
 
     if image is not None:
         # img2img runs steps*strength actual denoising steps, so keep `steps`
@@ -398,16 +518,62 @@ else:
 
 
 # Optional but the more important of the two tests: any photo in /content gets
-# previewed through the exact img2img path the app uses.
+# previewed through the exact path the app uses.
+#
+# Paste real boxes here to test masked inpainting, which is what the app does.
+# Get them by running this on the same photo, on your own machine:
+#
+#     npx tsx scripts/nail-boxes.ts path/to/photo.jpg
+#
+# It prints a ready-to-paste `NAIL_BOXES = [...]` line. Leave this empty and
+# you get the old unmasked img2img sweep instead — which is worth seeing once,
+# because it shows the problem masking solves: the rings change, the nails
+# don't.
+NAIL_BOXES = []
+
 TEST_PHOTO = _find_test_photo()
+
+
+def mask_overlay(src, mask):
+    """Wash the masked region in pink so you can see where paint will land."""
+    tint = Image.composite(Image.new("RGB", src.size, (255, 0, 140)), src, mask)
+    return Image.blend(src, tint, 0.5)
+
 
 if LORA_READY and TEST_PHOTO:
     print(f"\nUsing your photo: {TEST_PHOTO}")
     src = _decode(base64.b64encode(open(TEST_PHOTO, "rb").read()).decode())
-    strengths = [0.35, 0.5, 0.65]
-    outs = [render(TEST_PROMPT, image=src, strength=s, seed=SEED) for s in strengths]
-    print("img2img strength sweep — pick the lowest value that still restyles:")
-    display(grid([src] + outs, ["original"] + [f"strength {s}" for s in strengths]))
+
+    if NAIL_BOXES and inpaint is not None:
+        mask = build_mask(src.size, NAIL_BOXES)
+        area = sum(
+            (b[2] - b[0]) * (b[3] - b[1]) for b in NAIL_BOXES
+        ) / (1000 * 1000) * 100
+        print(f"{len(NAIL_BOXES)} nail boxes covering ~{area:.1f}% of the frame.")
+        print("CHECK THE SECOND PANEL: the pink must sit on the nail plates.")
+        print("If it is on knuckles or the ring, re-run nail-boxes.ts — a wrong")
+        print("mask at strength 0.95 will repaint whatever it covers.\n")
+
+        masked = render(
+            TEST_PROMPT, image=src, mask_boxes=NAIL_BOXES,
+            mask_strength=0.95, seed=SEED,
+        )
+        # Same strength with no mask, for contrast. This is the comparison that
+        # justifies the whole approach.
+        unmasked = render(TEST_PROMPT, image=src, strength=0.95, seed=SEED)
+
+        display(grid(
+            [src, mask_overlay(src, mask), masked, unmasked],
+            ["original", "mask", "masked 0.95", "UNmasked 0.95"],
+        ))
+    else:
+        if NAIL_BOXES:
+            print("NAIL_BOXES is set but the inpainting pipeline failed to build.")
+            print("Scroll up for the reason. Falling back to the img2img sweep.\n")
+        strengths = [0.35, 0.5, 0.65]
+        outs = [render(TEST_PROMPT, image=src, strength=s, seed=SEED) for s in strengths]
+        print("img2img strength sweep — note how little the nails change:")
+        display(grid([src] + outs, ["original"] + [f"strength {s}" for s in strengths]))
 elif LORA_READY:
     print("\n(No photo in /content. Upload any nail photo and re-run this cell")
     print(" to preview the image-to-image path the app actually uses.)")
@@ -418,7 +584,7 @@ import nest_asyncio, uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import Optional
+from typing import List, Optional
 
 nest_asyncio.apply()
 app = FastAPI()
@@ -435,6 +601,13 @@ class GenerateRequest(BaseModel):
     guidance_scale: float = 7.5
     lora_scale: float = DEFAULT_LORA_SCALE
 
+    # Nail boxes as [ymin, xmin, ymax, xmax] scaled 0-1000, from Gemini via
+    # lib/ai/detect.ts. Present -> masked inpainting; absent -> img2img.
+    mask_boxes: Optional[List[List[float]]] = None
+    # Only applies inside the mask, which is why it can be this high. Ignored
+    # entirely when mask_boxes is absent — prompt_strength governs there.
+    mask_strength: float = 0.95
+
 
 @app.get("/health")
 def health():
@@ -444,6 +617,9 @@ def health():
         "lora": LORA_READY,
         "lora_file": LORA_FILE,
         "scale_mode": SCALE_MODE,
+        # False means this notebook predates masking or failed to build the
+        # pipeline, so nail previews will come out unmasked.
+        "inpaint": inpaint is not None,
     }
 
 
@@ -458,6 +634,8 @@ def generate(req: GenerateRequest):
             scale=req.lora_scale,
             steps=req.num_inference_steps,
             guidance=req.guidance_scale,
+            mask_boxes=req.mask_boxes,
+            mask_strength=req.mask_strength,
         )
         buf = io.BytesIO()
         out.save(buf, format="PNG")

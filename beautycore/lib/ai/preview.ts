@@ -1,5 +1,6 @@
 import 'server-only';
 
+import { detectNailBoxes, type NailBox } from './detect';
 import type { StyleCategory } from './types';
 
 /**
@@ -151,7 +152,19 @@ const geminiProvider: PreviewProvider = {
  *
  * Contract:
  *   POST {LORA_ENDPOINT_URL}/generate
- *   { prompt, image?, prompt_strength, lora_scale? } -> { image: "<base64 png>" }
+ *   { prompt, image?, prompt_strength, mask_boxes?, mask_strength?, lora_scale? }
+ *     -> { image: "<base64 png>" }
+ *
+ * `mask_boxes` switches the server from image-to-image to masked inpainting,
+ * which is what makes nail previews work at all: unmasked, the model repaints
+ * the whole frame and spends its budget on rings and background rather than on
+ * nails that are ~1% of the image each. See ./detect.ts.
+ *
+ * The two strengths are separate on purpose. `prompt_strength` means exactly
+ * what it always meant — how much of the whole frame img2img may destroy — and
+ * `mask_strength` only applies inside the mask. A server predating this change
+ * ignores both new fields and falls back to `prompt_strength`, i.e. today's
+ * behaviour, instead of repainting the entire photo at 0.95.
  *
  * The tunnel URL changes on every notebook restart, so failures here are
  * expected and get a specific message rather than a generic error.
@@ -193,17 +206,44 @@ const loraProvider: PreviewProvider = {
       };
     }
 
-    // Nails need the hand kept intact, so change less of the source image.
-    // Hair can move further from the original without looking wrong.
+    // Find the nails so the repaint can be confined to them. Skipped for hair
+    // (a box mask doesn't describe hair) and when there's no source photo to
+    // mask. LORA_NAIL_MASK=0 forces the old unmasked path, for comparing them.
+    let maskBoxes: NailBox[] = [];
+    if (styleType === 'nails' && sourceImage && process.env.LORA_NAIL_MASK !== '0') {
+      maskBoxes = await detectNailBoxes(sourceImage.base64, sourceImage.mimeType);
+    }
+
+    // How much of the WHOLE frame img2img may destroy. Stays low: nails need
+    // the hand kept intact, hair can move further. This is also the value a
+    // server that predates masking falls back to, which is why it must not be
+    // raised — 0.95 across the whole frame destroys the photo.
     const promptStrength = styleType === 'nails' ? 0.5 : 0.65;
+
+    // Inside a mask, high strength is the entire point: it's the only way to
+    // get a real colour change, and nothing outside the nails can be touched.
+    const rawMaskStrength = Number(process.env.LORA_MASK_STRENGTH ?? '0.95');
+    const maskStrength = Number.isFinite(rawMaskStrength) ? rawMaskStrength : 0.95;
+
+    const rawScale = Number(process.env.LORA_SCALE ?? '0.8');
+    const loraScale = Number.isFinite(rawScale) ? rawScale : 0.8;
+
+    // Logged because a disappointing preview has two very different causes —
+    // no mask, or a mask that missed — and they are indistinguishable from the
+    // image alone.
+    console.log(
+      `[preview/lora] ${styleType} · ` +
+        (maskBoxes.length
+          ? `inpainting ${maskBoxes.length} nail(s) @ strength ${maskStrength}`
+          : `unmasked img2img @ strength ${promptStrength}`) +
+        ` · lora_scale ${loraScale}`
+    );
 
     // Cold start loads SD 1.5 onto the Colab GPU, which is slow the first time.
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 180_000);
 
     try {
-      const loraScale = Number(process.env.LORA_SCALE ?? '0.8');
-
       const res = await fetch(`${base}/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -214,7 +254,11 @@ const loraProvider: PreviewProvider = {
             ? `data:${sourceImage.mimeType};base64,${sourceImage.base64}`
             : undefined,
           prompt_strength: promptStrength,
-          lora_scale: Number.isFinite(loraScale) ? loraScale : 0.8,
+          // Omitted entirely when detection found nothing, so the server takes
+          // its plain img2img path rather than inpainting through an empty mask.
+          mask_boxes: maskBoxes.length ? maskBoxes : undefined,
+          mask_strength: maskStrength,
+          lora_scale: loraScale,
         }),
       });
 

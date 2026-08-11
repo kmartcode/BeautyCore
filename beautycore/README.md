@@ -50,7 +50,8 @@ components/          ui.tsx (shared primitives), sidebars, navbar, footer
 context/             AuthContext
 db/                  schema.ts, index.ts, seed.ts
 lib/                 auth.ts, services.ts, ai/
-scripts/             BeautyCore_LoRA_Colab.ipynb, colab_lora_server.py
+scripts/             BeautyCore_LoRA_Colab.ipynb, colab_lora_server.py,
+                     tsx diagnostics (see Scripts below)
 ```
 
 **Auth** — bcrypt password hashing, JWT in an HttpOnly cookie (`jose`), 7-day
@@ -111,8 +112,52 @@ image-to-image endpoint for it:
 
 The tunnel URL changes on every Colab restart — re-paste it each session.
 
+### How nail masking works
+
+Previews are rendered as **masked inpainting**, not plain image-to-image, and
+this is the difference between a preview that works and one that doesn't.
+
+Image-to-image adds noise uniformly across the frame. A fingernail is roughly 1%
+of a hand photo, so the model spends its change budget wherever there is room —
+in testing it reliably replaced a ring and left the nails untouched, even with a
+prompt asking for burgundy on pale pink nails.
+
+So before rendering, `lib/ai/detect.ts` asks Gemini for one bounding box per nail
+and sends them to the LoRA server, which rasterises them into a blurred mask
+(`build_mask` in the notebook) and repaints only inside it. Confined that way,
+strength can go to 0.95 — high enough for a genuine colour change — while rings,
+skin and background are untouched by construction.
+
+Two safeguards, because a wrong mask is worse than no mask:
+
+- Boxes are validated and clamped, and the **whole set is discarded if it covers
+  more than 60% of the frame** — that means detection boxed the hand, not the
+  nails, and repainting through it at 0.95 would wreck the photo.
+- Detection never throws. No API key, a quota error, or no nails found all return
+  no boxes, and the render falls back to the old unmasked path.
+
+Hair is unaffected: a box mask can't describe hair, and `LORA_STYLE_SCOPE`
+already refuses hair requests.
+
+Tuning knobs, all optional (full comments in `.env.local.example`):
+
+| Variable | Default | Effect |
+|---|---|---|
+| `LORA_SCALE` | `0.8` | How strongly the trained style is applied |
+| `LORA_MASK_STRENGTH` | `0.95` | How much of each nail may be repainted |
+| `LORA_NAIL_MASK` | `1` | Set `0` to force the old unmasked path, for comparison |
+
+Mask *geometry* — how far each box is padded and how much the edge is feathered —
+lives in the notebook as `MASK_PAD` / `MASK_BLUR`, not in env vars, because it is
+tuned by looking at the overlay the smoke test prints.
+
 Notes worth knowing:
 
+- **An old notebook silently degrades.** If Colab is still running a copy from
+  before this change, it ignores `mask_boxes` and renders unmasked — so previews
+  look like the old broken ones with no error anywhere. `GET /health` on the
+  tunnel reports `"inpaint": true` when the running notebook can mask; the
+  `inpaint` field is simply absent on older ones.
 - **It's SD 1.5, not SDXL.** Serving it on an SDXL base fails outright: this
   LoRA's cross-attention layers are 768-dim against SDXL's 2048.
 - **The base model id in `hparams.yml` is dead.** Runway deleted their
@@ -155,6 +200,23 @@ py scripts/make_notebook.py scripts/colab_lora_server.py scripts/BeautyCore_LoRA
 | `npm run db:push` | Push schema to Neon |
 | `npm run db:seed` | Reset and load demo data |
 | `npm run db:studio` | Drizzle Studio (browse the DB) |
+
+### Diagnostics
+
+Not npm scripts — run them directly. All read `.env.local`, none need a dev
+server or a login, which makes them the fastest way to find out which stage of
+the pipeline is misbehaving.
+
+| Command | What it tells you |
+|---|---|
+| `npx tsx scripts/test-analyze.ts <photo>` | Whether Gemini analysis works at all |
+| `npx tsx scripts/show-prompts.ts <photo>` | The full, untruncated prompts the LoRA will receive |
+| `npx tsx scripts/nail-boxes.ts <photo>` | Where Gemini thinks the nails are, plus a paste-ready `NAIL_BOXES` line for the notebook |
+| `npx tsx scripts/test-preview.ts <photo> [out.png]` | End-to-end render: box count, strength used, whether the notebook can mask, and the PNG on disk |
+
+`test-preview.ts` is the one that answers "is the preview actually fixed" — open
+its output next to the original and check that the nails changed and the rings
+did not.
 
 ## Notes
 
