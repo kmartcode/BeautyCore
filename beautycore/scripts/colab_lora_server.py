@@ -87,18 +87,33 @@ DEFAULT_LORA_SCALE = 0.8
 MAX_SIDE = 640
 
 # Mask geometry, used when the app sends nail boxes (see build_mask).
-# Tune these by looking at the overlay in the smoke test, not by guessing:
-#   MASK_PAD  grows each box outward, giving the model room to place the tip
-#             and the cuticle edge. Too small and long nails get clipped
-#             mid-repaint; too large and it starts painting knuckle.
-#   MASK_BLUR feathers the boundary so the new nail fades into the finger.
-#             Too small leaves a visible cut-out edge. Too large is worse than
-#             it looks: a nail is only ~45px across at MAX_SIDE=640, so a blur
-#             of 15 erodes the fully-white core to nothing and every pixel ends
-#             up only partially repainted. At 5, five nails come out as ~8.6% of
-#             the frame touched with a ~1.2% full-strength core.
-MASK_PAD = 0.15
-MASK_BLUR = 5
+#   MASK_PAD  grows each box outward before the ellipse is drawn.
+#   MASK_BLUR feathers the boundary so the new nail fades into the finger
+#             instead of reading as a pasted cut-out.
+#
+# These two are NOT independent, which makes tuning either one alone a trap.
+# Blur spreads the edge outward AND erodes the fully-white core inward, so a
+# large blur both spills paint onto skin and weakens the repaint where you
+# actually want it. Padding then hides the weak core by enlarging the shape,
+# which spills further still. Measured on a real 435x520 hand photo, five nails
+# whose bare ellipses are 4.61% of the frame:
+#
+#   pad / blur   touched   full-strength core (share of nail)
+#   0.15 / 5      14.5%    2.70%  (59%)   <- the original guess
+#   0.05 / 5      11.6%    1.43%  (31%)   cutting pad alone starves the core
+#   0.05 / 2       7.7%    3.56%  (77%)   <- current: better on both axes
+#
+# At 0.15/5 the mask reached well past each nail onto the fingertip, and the
+# model filled that space with more nail: previews came back with noticeably
+# longer, more almond nails than the client actually had, overriding a prompt
+# that asked for short ones. Halving pad and blur fixed the drift and made the
+# colour change stronger, because more of each nail is repainted at full weight.
+#
+# Note blur is in absolute pixels and does not scale with MAX_SIDE, so it hits
+# a small image proportionally harder. Re-measure if MAX_SIDE changes.
+# Tune by looking at the smoke-test overlay, not by guessing.
+MASK_PAD = 0.05
+MASK_BLUR = 2
 
 # runwayml deleted their Stable Diffusion repos from HuggingFace in 2024, so the
 # id recorded in hparams.yml now 404s. These are the surviving mirrors of the
