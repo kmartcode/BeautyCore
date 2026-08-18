@@ -112,6 +112,51 @@ image-to-image endpoint for it:
 
 The tunnel URL changes on every Colab restart — re-paste it each session.
 
+#### Starting a session from scratch
+
+Two halves have to be running at once: Colab holds the GPU, your machine holds
+the app. Colab is the one that dies overnight.
+
+**1. Colab** — open the notebook, **Runtime → Change runtime type → T4 GPU**, then
+run cells **1, 2, 4, 5** in order. Cell 3 is an optional smoke test; skip it
+unless something looks wrong.
+
+Two lines to check as they run:
+
+- Cell 2 must print `✓ Inpainting pipeline ready`. If it prints the
+  `⚠ INPAINTING UNAVAILABLE` banner, run `!pip install -U diffusers` and re-run
+  the cell — otherwise previews silently fall back to the old unmasked path.
+- Cell 5 prints `PUBLIC URL: https://….trycloudflare.com`. Cell 5 then sits
+  there forever, which is correct — it is holding the tunnel open.
+
+**2. Your machine** — paste that URL into `.env.local`:
+
+```
+PREVIEW_PROVIDER=lora
+LORA_ENDPOINT_URL=https://whatever-cell-5-printed.trycloudflare.com
+```
+
+**3. Restart the dev server.** Next.js reads env at startup, so a URL pasted
+while it is already running has no effect. Ctrl-C, then `npm run dev`.
+
+Then log in as `maria@email.com` / `client123` → AI Advisor → upload a nail
+photo → analyse → generate a preview.
+
+**When previews stop working,** it is almost always a dead tunnel — Colab
+disconnects after idling. Check it directly:
+
+```bash
+curl https://your-tunnel.trycloudflare.com/health
+```
+
+`{"lora":true,"inpaint":true,...}` means the GPU side is fine and the problem is
+local. Anything else — timeout, 502, no response — means re-run Cell 5 for a new
+URL and repeat steps 2 and 3.
+
+The terminal logs one line per render. `inpainting 5 nail(s) @ strength 0.95` is
+the healthy case; `unmasked img2img` means detection found no nails and the
+render fell back, which is worth investigating on that photo.
+
 ### How nail masking works
 
 Previews are rendered as **masked inpainting**, not plain image-to-image, and
