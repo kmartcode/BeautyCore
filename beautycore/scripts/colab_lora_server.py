@@ -417,9 +417,28 @@ def build_mask(size, boxes, pad=None, blur=None):
     return mask.filter(ImageFilter.GaussianBlur(blur))
 
 
-def render(prompt, image=None, strength=0.5, scale=DEFAULT_LORA_SCALE,
-           steps=40, guidance=7.5, seed=None, mask_boxes=None,
-           mask_strength=0.95):
+# One GPU, and `from_pipe` deliberately shares components between txt2img,
+# img2img and inpaint — that sharing is exactly what makes the inpaint pipeline
+# cost no extra VRAM. It also means all three share ONE PNDMScheduler, and that
+# scheduler is stateful: it accumulates `ets` across denoising steps. Two
+# overlapping renders corrupt each other's state and die with
+#
+#     IndexError: list index out of range    (scheduling_pndm.py, step_plms)
+#
+# This is not an exotic race. uvicorn serves requests concurrently, and the
+# advisor renders three recommendations each with its own Generate button, so a
+# client clicking two of them is enough. Running a notebook cell while an API
+# request is in flight does it too — which is how it was found.
+#
+# Serialising costs nothing real: one GPU cannot render two images faster than
+# it renders them back to back, and two concurrent SD 1.5 renders risk OOM on
+# the T4 that free Colab hands out.
+_RENDER_LOCK = threading.Lock()
+
+
+def _render(prompt, image=None, strength=0.5, scale=DEFAULT_LORA_SCALE,
+            steps=40, guidance=7.5, seed=None, mask_boxes=None,
+            mask_strength=0.95):
     """
     Single entry point used by both the smoke test and the API. Three paths:
 
@@ -478,6 +497,12 @@ def render(prompt, image=None, strength=0.5, scale=DEFAULT_LORA_SCALE,
         ).images[0]
 
     return txt2img(width=512, height=512, num_inference_steps=steps, **opts).images[0]
+
+
+def render(*args, **kwargs):
+    """Serialised entry point. See _RENDER_LOCK for why the lock is required."""
+    with _RENDER_LOCK:
+        return _render(*args, **kwargs)
 
 
 print("✓ Pipeline ready")
