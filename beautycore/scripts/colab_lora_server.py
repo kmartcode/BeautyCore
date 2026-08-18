@@ -447,9 +447,20 @@ def render(prompt, image=None, strength=0.5, scale=DEFAULT_LORA_SCALE,
     )
 
     if image is not None and mask_boxes and inpaint is not None:
+        # height/width are NOT optional here, unlike every other pipeline call.
+        # img2img derives the output size from the input image; the inpaint
+        # pipeline instead falls back to the UNet's own 512x512 and stretches
+        # the photo AND the mask to square. The mask still lands on the nails
+        # (both are stretched identically) so the result looks right at a
+        # glance, but a 528x640 portrait hand came back ~20% too wide.
+        # _decode already snapped both sides to a multiple of 8, so these can
+        # be passed straight through.
+        W, H = image.size
         return inpaint(
             image=image,
             mask_image=build_mask(image.size, mask_boxes),
+            width=W,
+            height=H,
             # Unlike img2img, this is bounded by the mask, so it can go high.
             strength=max(0.1, min(mask_strength, 1.0)),
             num_inference_steps=steps,
